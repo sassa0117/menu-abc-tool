@@ -2,8 +2,9 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>メニューブック画像ジェネレーター（簡易版）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>メニューABC分析ツール</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #faf7f2;
@@ -12,281 +13,436 @@
     --ink-sub: #6b6b6b;
     --line: #e6e1d9;
     --accent: #c8541a;
+    --aa-bg: #e8f5e9; --aa-fg: #2e7d32;
+    --ac-bg: #fff3e0; --ac-fg: #ed6c02;
+    --ca-bg: #e3f2fd; --ca-fg: #1976d2;
+    --cc-bg: #ffebee; --cc-fg: #c62828;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
   body {
     font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
-    background: var(--bg); color: var(--ink); line-height: 1.5; font-size: 15px;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 15px;
     padding-bottom: 80px;
   }
-  .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
   h1 { font-size: 18px; margin: 0 0 4px; }
   .lead { color: var(--ink-sub); font-size: 12px; margin: 0 0 16px; }
-  .mode-link {
-    display: inline-block; font-size: 11px; color: var(--accent);
-    text-decoration: none; padding: 4px 10px; border: 1px solid var(--accent);
-    border-radius: 12px; margin-bottom: 16px;
-  }
+
   .card {
-    background: var(--card); border: 1px solid var(--line);
-    border-radius: 10px; padding: 16px; margin-bottom: 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
   }
-  .field { margin-bottom: 14px; }
-  .field label { display: block; font-size: 12px; color: var(--ink-sub); margin-bottom: 4px; font-weight: 600; }
-  .field input[type=text], .field input[type=password], .field textarea, .field select {
-    width: 100%; border: 1px solid var(--line); border-radius: 6px;
-    padding: 9px 10px; font: inherit; font-size: 14px; background: white;
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
   }
-  .field textarea { min-height: 80px; resize: vertical; }
-  .field .hint { font-size: 10px; color: #aaa; margin-top: 3px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .badge { background: var(--accent); color: white; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .toolbar button { flex: 0 0 auto; }
+
   button {
     background: var(--accent); color: white; border: none; border-radius: 8px;
-    padding: 10px 16px; font: inherit; cursor: pointer; font-size: 14px;
-    font-weight: 600; min-height: 40px;
+    padding: 9px 14px; font: inherit; cursor: pointer; font-size: 13px; font-weight: 600;
+    min-height: 38px;
   }
   button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.danger { background: transparent; color: var(--cc-fg); border: 1px solid var(--cc-fg); }
   button:active { transform: translateY(1px); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.full { width: 100%; padding: 12px; }
-  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  #promptBox {
-    width: 100%; min-height: 220px; border: 1px solid var(--line);
-    border-radius: 6px; padding: 10px; font-family: ui-monospace, monospace;
-    font-size: 12px; background: #fafafa; resize: vertical; margin-top: 10px;
+
+  .threshold { display: flex; gap: 14px; align-items: center; font-size: 12px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }
+  .threshold input { width: 56px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; text-align: center; }
+
+  .menu-list { display: grid; gap: 10px; }
+  .menu-item {
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
   }
-  .api-warning {
-    background: #fff3e0; border: 1px solid #ed6c02; border-radius: 6px;
-    padding: 8px 10px; font-size: 11px; color: #ed6c02; margin-bottom: 10px;
+  .menu-item .top {
+    display: flex; gap: 8px; margin-bottom: 10px; align-items: center;
   }
-  .gen-status { font-size: 12px; color: var(--ink-sub); margin-top: 8px; }
-  #imageResult img {
-    max-width: 100%; border-radius: 8px; border: 1px solid var(--line); margin-top: 12px;
+  .menu-item .name {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 10px;
+    font: inherit;
+    font-size: 14px;
+    background: white;
   }
-  h2 { font-size: 14px; margin: 0 0 10px; }
+  .menu-item .del {
+    background: transparent; color: var(--cc-fg); border: 1px solid var(--line);
+    border-radius: 6px; width: 36px; height: 36px; padding: 0; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .menu-item .grid3 {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;
+  }
+  .menu-item .grid3 label {
+    display: block; font-size: 10px; color: var(--ink-sub); margin-bottom: 3px; font-weight: 600;
+  }
+  .menu-item .grid3 input {
+    width: 100%; border: 1px solid var(--line); border-radius: 6px;
+    padding: 8px 6px; font: inherit; font-size: 14px; text-align: right;
+    background: white;
+    -moz-appearance: textfield;
+  }
+  .menu-item .grid3 input::-webkit-outer-spin-button,
+  .menu-item .grid3 input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .menu-item .results {
+    display: flex; gap: 12px; padding-top: 8px; border-top: 1px dashed var(--line);
+    font-size: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .menu-item .results .kv { display: flex; gap: 4px; align-items: baseline; }
+  .menu-item .results .kv span:first-child { color: var(--ink-sub); font-size: 10px; }
+  .menu-item .results .kv b { font-variant-numeric: tabular-nums; }
+  .rank { font-weight: 700; padding: 3px 7px; border-radius: 4px; font-size: 11px; }
+  .rank-A { background: var(--aa-bg); color: var(--aa-fg); }
+  .rank-B { background: #fff8e1; color: #f57c00; }
+  .rank-C { background: var(--cc-bg); color: var(--cc-fg); }
+
+  .add-btn-wrap { margin-top: 10px; display: flex; justify-content: center; }
+  .add-btn-wrap button { width: 100%; padding: 12px; }
+
+  .stat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
+  .stat .item { background: #fafafa; border-radius: 8px; padding: 10px 12px; }
+  .stat .item span { display: block; font-size: 11px; color: var(--ink-sub); }
+  .stat .item b { display: block; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  #chartWrap { height: 280px; }
+
+  .quadrants { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .q { padding: 10px; border-radius: 8px; }
+  .q-aa { background: var(--aa-bg); }
+  .q-ac { background: var(--ac-bg); }
+  .q-ca { background: var(--ca-bg); }
+  .q-cc { background: var(--cc-bg); }
+  .q h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; }
+  .q .desc { font-size: 10px; color: var(--ink-sub); margin-bottom: 6px; line-height: 1.3; }
+  .q ul { margin: 0; padding-left: 16px; font-size: 12px; }
+  .q ul li { margin-bottom: 2px; word-break: break-all; }
+
+  details { margin-top: 12px; font-size: 12px; }
+  summary { cursor: pointer; color: var(--accent); padding: 4px 0; }
+  details .body { padding: 8px 0; color: var(--ink-sub); line-height: 1.6; }
+
+  @media (min-width: 720px) {
+    body { font-size: 14px; }
+    .layout-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .menu-item .grid3 { grid-template-columns: repeat(3, 1fr); }
+    #chartWrap { height: 320px; }
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>メニューブック画像ジェネレーター</h1>
-  <p class="lead">最小入力でメニューブックのビジュアルイメージを生成（簡易版）</p>
-  <a href="./" class="mode-link">→ フル機能版（ABC分析つき）</a>
+  <h1>メニューABC分析ツール</h1>
+  <p class="lead">売上ABC × 粗利ABC で4象限に分け、メニューブック改修の優先度を出す</p>
+  <a href="./" style="display:inline-block;font-size:11px;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--accent);border-radius:12px;margin-bottom:14px;">→ フル版（コンセプト〜画像生成まで6ステップ）</a>
 
   <div class="card">
-    <h2>① 入力</h2>
-    <div class="field">
-      <label>店のコンセプト（一行）</label>
-      <input type="text" id="concept" placeholder="例: 30代女性向けのモダンビストロ、季節の小皿料理が中心">
-    </div>
-    <div class="field">
-      <label>主役商品（看板メニュー）</label>
-      <textarea id="hero" placeholder="例:&#10;黒毛和牛ステーキ&#10;看板ハンバーグ"></textarea>
-      <div class="hint">改行で区切る。表紙＆見開きで大きく扱われる</div>
-    </div>
-    <div class="field">
-      <label>その他商品</label>
-      <textarea id="others" placeholder="例:&#10;シーザーサラダ&#10;自家製パスタ&#10;季節のリゾット&#10;グラスワイン"></textarea>
-      <div class="hint">改行で区切る</div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>スタイル</label>
-        <select id="style">
-          <option value="モダンビストロ風">モダンビストロ</option>
-          <option value="和モダン">和モダン</option>
-          <option value="カジュアル・親しみやすい">カジュアル</option>
-          <option value="クラシック・高級感">クラシック高級</option>
-          <option value="ナチュラル・素朴">ナチュラル</option>
-          <option value="ポップ・カラフル">ポップ</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>カラートーン</label>
-        <select id="tone">
-          <option value="暖色系（オレンジ・赤・茶）">暖色系</option>
-          <option value="寒色系（青・緑）">寒色系</option>
-          <option value="モノトーン（黒・白・グレー）">モノトーン</option>
-          <option value="ナチュラル（ベージュ・木目）">ナチュラル</option>
-          <option value="パステル（柔らかい色）">パステル</option>
-        </select>
-      </div>
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label>用途</label>
-        <select id="purpose">
-          <option value="表紙＋最初の見開き">表紙＋見開き</option>
-          <option value="表紙のみ">表紙のみ</option>
-          <option value="見開きページのみ">見開きのみ</option>
-          <option value="単ページレイアウト">単ページ</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>画像サイズ</label>
-        <select id="imgSize">
-          <option value="1024x1024">1024×1024 (正方形)</option>
-          <option value="1536x1024" selected>1536×1024 (横長)</option>
-          <option value="1024x1536">1024×1536 (縦長)</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>② プロンプト</h2>
-    <button onclick="buildPrompt()" class="full">プロンプト生成</button>
-    <textarea id="promptBox" placeholder="「プロンプト生成」を押すとここに表示。編集も可能"></textarea>
+    <h2><span class="badge">入力</span>メニュー</h2>
     <div class="toolbar">
-      <button onclick="copyPrompt()" class="ghost">コピー</button>
+      <button onclick="loadSample()" class="ghost">サンプル</button>
+      <button onclick="exportCSV()" class="ghost">CSV出力</button>
+      <button onclick="document.getElementById('csvFile').click()" class="ghost">CSV読込</button>
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)">
+      <button onclick="clearAll()" class="danger">全消去</button>
+    </div>
+    <div class="threshold">
+      <span style="font-weight:600;">ランク区切り</span>
+      <label>A ≤ <input type="number" id="thA" value="70" min="1" max="99" inputmode="numeric" onchange="render()">%</label>
+      <label>B ≤ <input type="number" id="thB" value="90" min="1" max="99" inputmode="numeric" onchange="render()">%</label>
+    </div>
+    <div class="menu-list" id="menuList"></div>
+    <div class="add-btn-wrap">
+      <button onclick="addRow()">＋ メニューを追加</button>
     </div>
   </div>
 
-  <div class="card">
-    <h2>③ 画像生成（任意）</h2>
-    <div class="api-warning">
-      OpenAI APIキーが必要。料金はOpenAI側で課金（1枚 約$0.04〜$0.17）
+  <div class="layout-2col">
+    <div class="card">
+      <h2><span class="badge">サマリー</span>全体</h2>
+      <div class="stat">
+        <div class="item"><span>商品数</span><b id="kpiCount">0</b></div>
+        <div class="item"><span>総売上</span><b id="kpiSales">¥0</b></div>
+        <div class="item"><span>総粗利</span><b id="kpiProfit">¥0</b></div>
+        <div class="item"><span>平均粗利率</span><b id="kpiMargin">0%</b></div>
+      </div>
+      <div id="chartWrap"><canvas id="chart"></canvas></div>
+      <details>
+        <summary>分析の前提</summary>
+        <div class="body">
+          売上ABC: 売上構成比の累計でランク分け（デフォ A≤70% / B≤90% / C残り）<br>
+          粗利ABC: 粗利構成比の累計で同様にランク分け<br>
+          バブルチャート: 横=売上, 縦=粗利, サイズ=販売数
+        </div>
+      </details>
     </div>
-    <div class="field">
-      <label>OpenAI APIキー</label>
-      <input type="password" id="apiKey" placeholder="sk-...">
+
+    <div class="card">
+      <h2><span class="badge">クロス</span>4象限</h2>
+      <div class="quadrants">
+        <div class="q q-aa">
+          <h3>★ 売上A × 粗利A</h3>
+          <div class="desc">看板・最強化</div>
+          <ul id="q-AA"><li>—</li></ul>
+        </div>
+        <div class="q q-ac">
+          <h3>売上A × 粗利C</h3>
+          <div class="desc">原価重い→改善</div>
+          <ul id="q-AC"><li>—</li></ul>
+        </div>
+        <div class="q q-ca">
+          <h3>売上C × 粗利A</h3>
+          <div class="desc">隠れ優良→押し上げ</div>
+          <ul id="q-CA"><li>—</li></ul>
+        </div>
+        <div class="q q-cc">
+          <h3>売上C × 粗利C</h3>
+          <div class="desc">死に筋→撤去候補</div>
+          <ul id="q-CC"><li>—</li></ul>
+        </div>
+      </div>
+      <details>
+        <summary>各象限の施策</summary>
+        <div class="body">
+          <b>★AA</b>: 表紙/最初の見開き、写真30%大、専用ストーリー枠<br>
+          <b>AC</b>: レシピ改善 or 値上げでリニューアル<br>
+          <b>CA</b>: 掲載位置を上げ、写真追加、ネーミング変更<br>
+          <b>CC</b>: 削除候補。残すなら役割を再定義
+        </div>
+      </details>
     </div>
-    <button onclick="generateImage()" id="genBtn" class="full">画像を生成</button>
-    <div class="gen-status" id="genStatus"></div>
-    <div id="imageResult"></div>
   </div>
 </div>
 
 <script>
-const STORAGE_KEY = 'menu-simple-v1';
+const STORAGE_KEY = 'menu-abc-data-v1';
+let data = [];
+let chart = null;
 
-function saveState() {
-  const s = {
-    concept: document.getElementById('concept').value,
-    hero: document.getElementById('hero').value,
-    others: document.getElementById('others').value,
-    style: document.getElementById('style').value,
-    tone: document.getElementById('tone').value,
-    purpose: document.getElementById('purpose').value,
-    imgSize: document.getElementById('imgSize').value,
-    apiKey: document.getElementById('apiKey').value,
-    prompt: document.getElementById('promptBox').value,
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function load() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) data = JSON.parse(s); } catch (e) {}
+  if (data.length === 0) addRow(false);
 }
-function loadState() {
-  try {
-    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!s) return;
-    for (const k of ['concept','hero','others','style','tone','purpose','imgSize','apiKey']) {
-      if (s[k] != null) document.getElementById(k).value = s[k];
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function addRow(rerender = true) {
+  data.push({ id: uid(), name: '', price: 0, cost: 0, qty: 0 });
+  if (rerender) render();
+}
+function deleteRow(id) {
+  data = data.filter(d => d.id !== id);
+  if (data.length === 0) addRow(false);
+  render();
+}
+function updateField(id, field, value) {
+  const row = data.find(d => d.id === id);
+  if (!row) return;
+  if (field === 'name') row.name = value;
+  else row[field] = parseFloat(value) || 0;
+  save(); render();
+}
+function clearAll() {
+  if (!confirm('全データを消去します。よろしいですか？')) return;
+  data = []; addRow(false); save(); render();
+}
+function loadSample() {
+  data = [
+    { id: uid(), name: '黒毛和牛ステーキ', price: 3800, cost: 1500, qty: 45 },
+    { id: uid(), name: '看板ハンバーグ',   price: 1480, cost: 450,  qty: 180 },
+    { id: uid(), name: 'ランチセットA',    price: 980,  cost: 480,  qty: 220 },
+    { id: uid(), name: '自家製パスタ',     price: 1280, cost: 380,  qty: 95 },
+    { id: uid(), name: '本日の魚料理',     price: 1980, cost: 900,  qty: 30 },
+    { id: uid(), name: 'シーザーサラダ',   price: 880,  cost: 220,  qty: 110 },
+    { id: uid(), name: '自家製デザート',   price: 580,  cost: 120,  qty: 70 },
+    { id: uid(), name: 'グラスワイン',     price: 680,  cost: 180,  qty: 140 },
+    { id: uid(), name: '季節のリゾット',   price: 1380, cost: 520,  qty: 12 },
+    { id: uid(), name: 'チーズ盛り合わせ', price: 1580, cost: 800,  qty: 8 },
+  ];
+  save(); render();
+}
+
+function rankBy(key) {
+  const total = data.reduce((s, d) => s + (d[key] || 0), 0);
+  if (total === 0) return new Map();
+  const sorted = [...data].sort((a, b) => (b[key] || 0) - (a[key] || 0));
+  const thA = parseFloat(document.getElementById('thA').value) || 70;
+  const thB = parseFloat(document.getElementById('thB').value) || 90;
+  const ranks = new Map();
+  let cum = 0;
+  for (const d of sorted) {
+    cum += (d[key] || 0);
+    const pct = (cum / total) * 100;
+    if (pct <= thA) ranks.set(d.id, 'A');
+    else if (pct <= thB) ranks.set(d.id, 'B');
+    else ranks.set(d.id, 'C');
+  }
+  return ranks;
+}
+
+function render() {
+  for (const row of data) {
+    row.sales = (row.price || 0) * (row.qty || 0);
+    row.profit = ((row.price || 0) - (row.cost || 0)) * (row.qty || 0);
+  }
+  const salesRanks = rankBy('sales');
+  const profitRanks = rankBy('profit');
+
+  const list = document.getElementById('menuList');
+  list.innerHTML = '';
+  for (const row of data) {
+    const sR = salesRanks.get(row.id) || '-';
+    const pR = profitRanks.get(row.id) || '-';
+    const div = document.createElement('div');
+    div.className = 'menu-item';
+    div.innerHTML = `
+      <div class="top">
+        <input class="name" type="text" value="${escapeHtml(row.name)}" placeholder="商品名" onchange="updateField('${row.id}','name',this.value)">
+        <button class="del" onclick="deleteRow('${row.id}')" aria-label="削除">×</button>
+      </div>
+      <div class="grid3">
+        <div><label>価格</label><input type="number" inputmode="numeric" value="${row.price || ''}" placeholder="0" onchange="updateField('${row.id}','price',this.value)" min="0"></div>
+        <div><label>原価</label><input type="number" inputmode="numeric" value="${row.cost || ''}" placeholder="0" onchange="updateField('${row.id}','cost',this.value)" min="0"></div>
+        <div><label>販売数</label><input type="number" inputmode="numeric" value="${row.qty || ''}" placeholder="0" onchange="updateField('${row.id}','qty',this.value)" min="0"></div>
+      </div>
+      <div class="results">
+        <div class="kv"><span>売上</span><b>¥${(row.sales || 0).toLocaleString()}</b></div>
+        <div class="kv"><span>粗利</span><b>¥${(row.profit || 0).toLocaleString()}</b></div>
+        <div class="kv"><span>売上R</span><span class="rank rank-${sR}">${sR}</span></div>
+        <div class="kv"><span>粗利R</span><span class="rank rank-${pR}">${pR}</span></div>
+      </div>
+    `;
+    list.appendChild(div);
+  }
+
+  const totalSales = data.reduce((s, d) => s + (d.sales || 0), 0);
+  const totalProfit = data.reduce((s, d) => s + (d.profit || 0), 0);
+  const margin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+  document.getElementById('kpiCount').textContent = data.filter(d => d.name).length;
+  document.getElementById('kpiSales').textContent = '¥' + totalSales.toLocaleString();
+  document.getElementById('kpiProfit').textContent = '¥' + totalProfit.toLocaleString();
+  document.getElementById('kpiMargin').textContent = margin.toFixed(1) + '%';
+
+  const buckets = { AA: [], AC: [], CA: [], CC: [] };
+  for (const row of data) {
+    if (!row.name) continue;
+    const sR = salesRanks.get(row.id);
+    const pR = profitRanks.get(row.id);
+    if (sR === 'A' && pR === 'A') buckets.AA.push(row.name);
+    else if (sR === 'A' && pR === 'C') buckets.AC.push(row.name);
+    else if (sR === 'C' && pR === 'A') buckets.CA.push(row.name);
+    else if (sR === 'C' && pR === 'C') buckets.CC.push(row.name);
+  }
+  for (const k of ['AA', 'AC', 'CA', 'CC']) {
+    const ul = document.getElementById('q-' + k);
+    ul.innerHTML = buckets[k].length > 0
+      ? buckets[k].map(n => `<li>${escapeHtml(n)}</li>`).join('')
+      : '<li style="color:#aaa">—</li>';
+  }
+
+  renderChart(salesRanks, profitRanks);
+  save();
+}
+
+function renderChart(salesRanks, profitRanks) {
+  const ctx = document.getElementById('chart');
+  const points = data
+    .filter(d => d.name && d.sales > 0)
+    .map(d => {
+      const sR = salesRanks.get(d.id);
+      const pR = profitRanks.get(d.id);
+      let color = 'rgba(150,150,150,0.6)';
+      if (sR === 'A' && pR === 'A') color = 'rgba(46,125,50,0.7)';
+      else if (sR === 'A' && pR === 'C') color = 'rgba(237,108,2,0.7)';
+      else if (sR === 'C' && pR === 'A') color = 'rgba(25,118,210,0.7)';
+      else if (sR === 'C' && pR === 'C') color = 'rgba(183,28,28,0.7)';
+      return { x: d.sales, y: d.profit, r: Math.min(18, Math.sqrt(d.qty || 1) * 2), label: d.name, sR, pR, color };
+    });
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets: [{ data: points, backgroundColor: points.map(p => p.color), borderColor: points.map(p => p.color) }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => {
+              const p = c.raw;
+              return `${p.label}: 売上¥${p.x.toLocaleString()} / 粗利¥${p.y.toLocaleString()} (S:${p.sR}/P:${p.pR})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: '売上 (円)' }, beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { title: { display: true, text: '粗利 (円)' }, beginAtZero: true, ticks: { font: { size: 10 } } }
+      }
     }
-    if (s.prompt) document.getElementById('promptBox').value = s.prompt;
-  } catch (e) {}
-}
-
-function buildPrompt() {
-  const concept = document.getElementById('concept').value.trim();
-  const hero = document.getElementById('hero').value.trim().split(/\n+/).filter(Boolean);
-  const others = document.getElementById('others').value.trim().split(/\n+/).filter(Boolean);
-  const style = document.getElementById('style').value;
-  const tone = document.getElementById('tone').value;
-  const purpose = document.getElementById('purpose').value;
-
-  const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、${purpose}をデザインしてください。
-
-【店のコンセプト】
-${concept || '（未入力）'}
-
-【主役商品（写真は他より約30%大きく、専用枠付き）】
-${hero.length > 0 ? hero.map(n => '- ' + n).join('\n') : '（未入力）'}
-
-【その他の掲載商品】
-${others.length > 0 ? others.map(n => '- ' + n).join('\n') : '（未入力）'}
-
-【デザイン指示】
-- スタイル: ${style}
-- カラートーン: ${tone}
-- 主役は写真大きく、他は脇役として整列
-- 視線誘導が明確で初来店客でも迷わない構成
-- フォントは読みやすい和文（必要に応じて欧文も）
-- 価格表記は分かりやすく、客が恥ずかしくない位置に
-- 全体に清潔感と料理への期待感を持たせる`;
-
-  document.getElementById('promptBox').value = prompt;
-  saveState();
-}
-
-function copyPrompt() {
-  const box = document.getElementById('promptBox');
-  if (!box.value) { alert('先に「プロンプト生成」を押してください'); return; }
-  navigator.clipboard.writeText(box.value).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = 'コピー済';
-    setTimeout(() => btn.textContent = orig, 1500);
   });
 }
 
-async function generateImage() {
-  const apiKey = document.getElementById('apiKey').value.trim();
-  const prompt = document.getElementById('promptBox').value.trim();
-  const size = document.getElementById('imgSize').value;
-  const status = document.getElementById('genStatus');
-  const result = document.getElementById('imageResult');
-  const btn = document.getElementById('genBtn');
-
-  if (!apiKey) { status.textContent = '⚠ APIキーを入力してください'; return; }
-  if (!prompt) { status.textContent = '⚠ 先にプロンプトを生成してください'; return; }
-
-  btn.disabled = true;
-  status.textContent = '画像生成中... (30秒〜1分)';
-  result.innerHTML = '';
-
-  try {
-    const res = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey,
-      },
-      body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: prompt,
-        size: size,
-        n: 1,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      status.textContent = '✗ エラー: ' + (data.error?.message || res.statusText);
-      btn.disabled = false;
-      return;
-    }
-    const b64 = data.data?.[0]?.b64_json;
-    const url = data.data?.[0]?.url;
-    if (b64) {
-      result.innerHTML = `<img src="data:image/png;base64,${b64}" alt="生成画像">`;
-    } else if (url) {
-      result.innerHTML = `<img src="${url}" alt="生成画像">`;
-    } else {
-      status.textContent = '✗ 画像データが取得できませんでした';
-      btn.disabled = false;
-      return;
-    }
-    status.textContent = '✓ 生成完了';
-  } catch (e) {
-    status.textContent = '✗ 通信エラー: ' + e.message;
-  }
-  btn.disabled = false;
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-document.querySelectorAll('input, textarea, select').forEach(el => {
-  el.addEventListener('input', saveState);
-  el.addEventListener('change', saveState);
-});
+function exportCSV() {
+  const header = '商品名,価格,原価,販売数,売上,粗利\n';
+  const rows = data.map(d =>
+    [d.name, d.price, d.cost, d.qty, d.sales || 0, d.profit || 0]
+      .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `menu-abc-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+function importCSV(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result.replace(/^﻿/, '');
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const newData = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (cols.length < 4) continue;
+      newData.push({ id: uid(), name: cols[0] || '', price: parseFloat(cols[1]) || 0, cost: parseFloat(cols[2]) || 0, qty: parseFloat(cols[3]) || 0 });
+    }
+    if (newData.length > 0) { data = newData; save(); render(); }
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+function parseCSVLine(line) {
+  const result = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur); return result;
+}
 
-loadState();
+load(); render();
 </script>
 </body>
 </html>
