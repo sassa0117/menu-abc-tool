@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>メニューブック画像ジェネレーター（簡易版）</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --card: #ffffff;
+    --ink: #2a2a2a;
+    --ink-sub: #6b6b6b;
+    --line: #e6e1d9;
+    --accent: #c8541a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.5; font-size: 15px;
+    padding-bottom: 80px;
+  }
+  .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .lead { color: var(--ink-sub); font-size: 12px; margin: 0 0 16px; }
+  .mode-link {
+    display: inline-block; font-size: 11px; color: var(--accent);
+    text-decoration: none; padding: 4px 10px; border: 1px solid var(--accent);
+    border-radius: 12px; margin-bottom: 16px;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px; margin-bottom: 14px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12px; color: var(--ink-sub); margin-bottom: 4px; font-weight: 600; }
+  .field input[type=text], .field input[type=password], .field textarea, .field select {
+    width: 100%; border: 1px solid var(--line); border-radius: 6px;
+    padding: 9px 10px; font: inherit; font-size: 14px; background: white;
+  }
+  .field textarea { min-height: 80px; resize: vertical; }
+  .field .hint { font-size: 10px; color: #aaa; margin-top: 3px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 10px 16px; font: inherit; cursor: pointer; font-size: 14px;
+    font-weight: 600; min-height: 40px;
+  }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.full { width: 100%; padding: 12px; }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  #promptBox {
+    width: 100%; min-height: 220px; border: 1px solid var(--line);
+    border-radius: 6px; padding: 10px; font-family: ui-monospace, monospace;
+    font-size: 12px; background: #fafafa; resize: vertical; margin-top: 10px;
+  }
+  .api-warning {
+    background: #fff3e0; border: 1px solid #ed6c02; border-radius: 6px;
+    padding: 8px 10px; font-size: 11px; color: #ed6c02; margin-bottom: 10px;
+  }
+  .gen-status { font-size: 12px; color: var(--ink-sub); margin-top: 8px; }
+  #imageResult img {
+    max-width: 100%; border-radius: 8px; border: 1px solid var(--line); margin-top: 12px;
+  }
+  h2 { font-size: 14px; margin: 0 0 10px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>メニューブック画像ジェネレーター</h1>
+  <p class="lead">最小入力でメニューブックのビジュアルイメージを生成（簡易版）</p>
+  <a href="./" class="mode-link">→ フル機能版（ABC分析つき）</a>
+
+  <div class="card">
+    <h2>① 入力</h2>
+    <div class="field">
+      <label>店のコンセプト（一行）</label>
+      <input type="text" id="concept" placeholder="例: 30代女性向けのモダンビストロ、季節の小皿料理が中心">
+    </div>
+    <div class="field">
+      <label>主役商品（看板メニュー）</label>
+      <textarea id="hero" placeholder="例:&#10;黒毛和牛ステーキ&#10;看板ハンバーグ"></textarea>
+      <div class="hint">改行で区切る。表紙＆見開きで大きく扱われる</div>
+    </div>
+    <div class="field">
+      <label>その他商品</label>
+      <textarea id="others" placeholder="例:&#10;シーザーサラダ&#10;自家製パスタ&#10;季節のリゾット&#10;グラスワイン"></textarea>
+      <div class="hint">改行で区切る</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>スタイル</label>
+        <select id="style">
+          <option value="モダンビストロ風">モダンビストロ</option>
+          <option value="和モダン">和モダン</option>
+          <option value="カジュアル・親しみやすい">カジュアル</option>
+          <option value="クラシック・高級感">クラシック高級</option>
+          <option value="ナチュラル・素朴">ナチュラル</option>
+          <option value="ポップ・カラフル">ポップ</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>カラートーン</label>
+        <select id="tone">
+          <option value="暖色系（オレンジ・赤・茶）">暖色系</option>
+          <option value="寒色系（青・緑）">寒色系</option>
+          <option value="モノトーン（黒・白・グレー）">モノトーン</option>
+          <option value="ナチュラル（ベージュ・木目）">ナチュラル</option>
+          <option value="パステル（柔らかい色）">パステル</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>用途</label>
+        <select id="purpose">
+          <option value="表紙＋最初の見開き">表紙＋見開き</option>
+          <option value="表紙のみ">表紙のみ</option>
+          <option value="見開きページのみ">見開きのみ</option>
+          <option value="単ページレイアウト">単ページ</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>画像サイズ</label>
+        <select id="imgSize">
+          <option value="1024x1024">1024×1024 (正方形)</option>
+          <option value="1536x1024" selected>1536×1024 (横長)</option>
+          <option value="1024x1536">1024×1536 (縦長)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>② プロンプト</h2>
+    <button onclick="buildPrompt()" class="full">プロンプト生成</button>
+    <textarea id="promptBox" placeholder="「プロンプト生成」を押すとここに表示。編集も可能"></textarea>
+    <div class="toolbar">
+      <button onclick="copyPrompt()" class="ghost">コピー</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>③ 画像生成（任意）</h2>
+    <div class="api-warning">
+      OpenAI APIキーが必要。料金はOpenAI側で課金（1枚 約$0.04〜$0.17）
+    </div>
+    <div class="field">
+      <label>OpenAI APIキー</label>
+      <input type="password" id="apiKey" placeholder="sk-...">
+    </div>
+    <button onclick="generateImage()" id="genBtn" class="full">画像を生成</button>
+    <div class="gen-status" id="genStatus"></div>
+    <div id="imageResult"></div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'menu-simple-v1';
+
+function saveState() {
+  const s = {
+    concept: document.getElementById('concept').value,
+    hero: document.getElementById('hero').value,
+    others: document.getElementById('others').value,
+    style: document.getElementById('style').value,
+    tone: document.getElementById('tone').value,
+    purpose: document.getElementById('purpose').value,
+    imgSize: document.getElementById('imgSize').value,
+    apiKey: document.getElementById('apiKey').value,
+    prompt: document.getElementById('promptBox').value,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!s) return;
+    for (const k of ['concept','hero','others','style','tone','purpose','imgSize','apiKey']) {
+      if (s[k] != null) document.getElementById(k).value = s[k];
+    }
+    if (s.prompt) document.getElementById('promptBox').value = s.prompt;
+  } catch (e) {}
+}
+
+function buildPrompt() {
+  const concept = document.getElementById('concept').value.trim();
+  const hero = document.getElementById('hero').value.trim().split(/\n+/).filter(Boolean);
+  const others = document.getElementById('others').value.trim().split(/\n+/).filter(Boolean);
+  const style = document.getElementById('style').value;
+  const tone = document.getElementById('tone').value;
+  const purpose = document.getElementById('purpose').value;
+
+  const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、${purpose}をデザインしてください。
+
+【店のコンセプト】
+${concept || '（未入力）'}
+
+【主役商品（写真は他より約30%大きく、専用枠付き）】
+${hero.length > 0 ? hero.map(n => '- ' + n).join('\n') : '（未入力）'}
+
+【その他の掲載商品】
+${others.length > 0 ? others.map(n => '- ' + n).join('\n') : '（未入力）'}
+
+【デザイン指示】
+- スタイル: ${style}
+- カラートーン: ${tone}
+- 主役は写真大きく、他は脇役として整列
+- 視線誘導が明確で初来店客でも迷わない構成
+- フォントは読みやすい和文（必要に応じて欧文も）
+- 価格表記は分かりやすく、客が恥ずかしくない位置に
+- 全体に清潔感と料理への期待感を持たせる`;
+
+  document.getElementById('promptBox').value = prompt;
+  saveState();
+}
+
+function copyPrompt() {
+  const box = document.getElementById('promptBox');
+  if (!box.value) { alert('先に「プロンプト生成」を押してください'); return; }
+  navigator.clipboard.writeText(box.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'コピー済';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+async function generateImage() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const prompt = document.getElementById('promptBox').value.trim();
+  const size = document.getElementById('imgSize').value;
+  const status = document.getElementById('genStatus');
+  const result = document.getElementById('imageResult');
+  const btn = document.getElementById('genBtn');
+
+  if (!apiKey) { status.textContent = '⚠ APIキーを入力してください'; return; }
+  if (!prompt) { status.textContent = '⚠ 先にプロンプトを生成してください'; return; }
+
+  btn.disabled = true;
+  status.textContent = '画像生成中... (30秒〜1分)';
+  result.innerHTML = '';
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt: prompt,
+        size: size,
+        n: 1,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      status.textContent = '✗ エラー: ' + (data.error?.message || res.statusText);
+      btn.disabled = false;
+      return;
+    }
+    const b64 = data.data?.[0]?.b64_json;
+    const url = data.data?.[0]?.url;
+    if (b64) {
+      result.innerHTML = `<img src="data:image/png;base64,${b64}" alt="生成画像">`;
+    } else if (url) {
+      result.innerHTML = `<img src="${url}" alt="生成画像">`;
+    } else {
+      status.textContent = '✗ 画像データが取得できませんでした';
+      btn.disabled = false;
+      return;
+    }
+    status.textContent = '✓ 生成完了';
+  } catch (e) {
+    status.textContent = '✗ 通信エラー: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+document.querySelectorAll('input, textarea, select').forEach(el => {
+  el.addEventListener('input', saveState);
+  el.addEventListener('change', saveState);
+});
+
+loadState();
+</script>
+</body>
+</html>
