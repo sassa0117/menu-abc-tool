@@ -209,6 +209,44 @@
     <div id="rankingArea"></div>
   </div>
 
+  <!-- Prompt output -->
+  <div class="card">
+    <h2><span class="badge">出力</span>メニューブック画像プロンプト</h2>
+    <p style="font-size:11px;color:var(--ink-sub);margin:0 0 12px;">ABCランクを反映（A群=主役、B群=脇役）したGPT Image用プロンプトを生成</p>
+    <div style="margin-bottom:10px;">
+      <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">店のコンセプト（任意・1行）</label>
+      <input type="text" id="pConcept" placeholder="例: 30代女性向けモダンビストロ、季節食材中心" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;font-size:14px;background:white;">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div>
+        <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">スタイル</label>
+        <select id="pStyle" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+          <option value="モダンビストロ風">モダンビストロ</option>
+          <option value="和モダン">和モダン</option>
+          <option value="カジュアル・親しみやすい">カジュアル</option>
+          <option value="クラシック・高級感">クラシック高級</option>
+          <option value="ナチュラル・素朴">ナチュラル</option>
+          <option value="ポップ・カラフル">ポップ</option>
+        </select>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">カラートーン</label>
+        <select id="pTone" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+          <option value="暖色系（オレンジ・赤・茶）">暖色系</option>
+          <option value="寒色系（青・緑）">寒色系</option>
+          <option value="モノトーン">モノトーン</option>
+          <option value="ナチュラル（ベージュ・木目）">ナチュラル</option>
+          <option value="パステル">パステル</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      <button onclick="buildPrompt()">プロンプト生成</button>
+      <button onclick="copyPrompt()" class="ghost">コピー</button>
+    </div>
+    <textarea id="promptBox" placeholder="「プロンプト生成」を押すと、ABCランクを反映したプロンプトがここに表示されます" style="width:100%;min-height:200px;border:1px solid var(--line);border-radius:6px;padding:10px;font-family:ui-monospace,monospace;font-size:12px;background:#fafafa;resize:vertical;"></textarea>
+  </div>
+
   <!-- Recommendations -->
   <div class="card">
     <h2><span class="badge">指針</span>ランク別アクション</h2>
@@ -479,6 +517,50 @@ function renderParetoChart(items, key) {
         },
       },
     },
+  });
+}
+
+function buildPrompt() {
+  const concept = document.getElementById('pConcept').value.trim();
+  const style = document.getElementById('pStyle').value;
+  const tone = document.getElementById('pTone').value;
+
+  // Use sales ABC for prompt (more relevant for menu book)
+  const { items } = rankAndAggregate('sales');
+  const aGroup = items.filter(i => i.rank === 'A').map(i => i.name);
+  const bGroup = items.filter(i => i.rank === 'B').map(i => i.name);
+
+  const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、メニューブックの表紙＋最初の見開きをデザインしてください。
+
+【店のコンセプト】
+${concept || '（未入力）'}
+
+【主役商品（A群・売上上位、写真は他より約30%大きく専用枠付き）】
+${aGroup.length > 0 ? aGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
+
+【脇役商品（B群・安定品）】
+${bGroup.length > 0 ? bGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
+
+【デザイン指示】
+- スタイル: ${style}
+- カラートーン: ${tone}
+- 主役は写真大きく、脇役は整列して配置
+- 視線誘導が明確で初来店客でも迷わない構成
+- フォントは読みやすい和文（必要に応じて欧文も）
+- 価格表記は分かりやすい位置に
+- 全体に清潔感と料理への期待感を持たせる`;
+
+  document.getElementById('promptBox').value = prompt;
+}
+
+function copyPrompt() {
+  const box = document.getElementById('promptBox');
+  if (!box.value) { alert('先に「プロンプト生成」を押してください'); return; }
+  navigator.clipboard.writeText(box.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'コピー済';
+    setTimeout(() => btn.textContent = orig, 1500);
   });
 }
 
