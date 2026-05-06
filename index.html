@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>メニューABC分析ツール</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --card: #ffffff;
+    --ink: #2a2a2a;
+    --ink-sub: #6b6b6b;
+    --line: #e6e1d9;
+    --accent: #c8541a;
+    --aa-bg: #e8f5e9; --aa-fg: #2e7d32;
+    --ac-bg: #fff3e0; --ac-fg: #ed6c02;
+    --ca-bg: #e3f2fd; --ca-fg: #1976d2;
+    --cc-bg: #ffebee; --cc-fg: #c62828;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 15px;
+    padding-bottom: 80px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  .lead { color: var(--ink-sub); font-size: 12px; margin: 0 0 16px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 14px;
+    margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .badge { background: var(--accent); color: white; padding: 2px 7px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .toolbar button { flex: 0 0 auto; }
+
+  button {
+    background: var(--accent); color: white; border: none; border-radius: 8px;
+    padding: 9px 14px; font: inherit; cursor: pointer; font-size: 13px; font-weight: 600;
+    min-height: 38px;
+  }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.danger { background: transparent; color: var(--cc-fg); border: 1px solid var(--cc-fg); }
+  button:active { transform: translateY(1px); }
+
+  .threshold { display: flex; gap: 14px; align-items: center; font-size: 12px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--line); }
+  .threshold input { width: 56px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; font: inherit; text-align: center; }
+
+  .menu-list { display: grid; gap: 10px; }
+  .menu-item {
+    background: #fafafa;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+  }
+  .menu-item .top {
+    display: flex; gap: 8px; margin-bottom: 10px; align-items: center;
+  }
+  .menu-item .name {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 9px 10px;
+    font: inherit;
+    font-size: 14px;
+    background: white;
+  }
+  .menu-item .del {
+    background: transparent; color: var(--cc-fg); border: 1px solid var(--line);
+    border-radius: 6px; width: 36px; height: 36px; padding: 0; font-size: 16px;
+    flex-shrink: 0;
+  }
+  .menu-item .grid3 {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px;
+  }
+  .menu-item .grid3 label {
+    display: block; font-size: 10px; color: var(--ink-sub); margin-bottom: 3px; font-weight: 600;
+  }
+  .menu-item .grid3 input {
+    width: 100%; border: 1px solid var(--line); border-radius: 6px;
+    padding: 8px 6px; font: inherit; font-size: 14px; text-align: right;
+    background: white;
+    -moz-appearance: textfield;
+  }
+  .menu-item .grid3 input::-webkit-outer-spin-button,
+  .menu-item .grid3 input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .menu-item .results {
+    display: flex; gap: 12px; padding-top: 8px; border-top: 1px dashed var(--line);
+    font-size: 12px; flex-wrap: wrap; align-items: center;
+  }
+  .menu-item .results .kv { display: flex; gap: 4px; align-items: baseline; }
+  .menu-item .results .kv span:first-child { color: var(--ink-sub); font-size: 10px; }
+  .menu-item .results .kv b { font-variant-numeric: tabular-nums; }
+  .rank { font-weight: 700; padding: 3px 7px; border-radius: 4px; font-size: 11px; }
+  .rank-A { background: var(--aa-bg); color: var(--aa-fg); }
+  .rank-B { background: #fff8e1; color: #f57c00; }
+  .rank-C { background: var(--cc-bg); color: var(--cc-fg); }
+
+  .add-btn-wrap { margin-top: 10px; display: flex; justify-content: center; }
+  .add-btn-wrap button { width: 100%; padding: 12px; }
+
+  .stat { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 14px; }
+  .stat .item { background: #fafafa; border-radius: 8px; padding: 10px 12px; }
+  .stat .item span { display: block; font-size: 11px; color: var(--ink-sub); }
+  .stat .item b { display: block; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  #chartWrap { height: 280px; }
+
+  .quadrants { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .q { padding: 10px; border-radius: 8px; }
+  .q-aa { background: var(--aa-bg); }
+  .q-ac { background: var(--ac-bg); }
+  .q-ca { background: var(--ca-bg); }
+  .q-cc { background: var(--cc-bg); }
+  .q h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; }
+  .q .desc { font-size: 10px; color: var(--ink-sub); margin-bottom: 6px; line-height: 1.3; }
+  .q ul { margin: 0; padding-left: 16px; font-size: 12px; }
+  .q ul li { margin-bottom: 2px; word-break: break-all; }
+
+  details { margin-top: 12px; font-size: 12px; }
+  summary { cursor: pointer; color: var(--accent); padding: 4px 0; }
+  details .body { padding: 8px 0; color: var(--ink-sub); line-height: 1.6; }
+
+  @media (min-width: 720px) {
+    body { font-size: 14px; }
+    .layout-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+    .menu-item .grid3 { grid-template-columns: repeat(3, 1fr); }
+    #chartWrap { height: 320px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>メニューABC分析ツール</h1>
+  <p class="lead">売上ABC × 粗利ABC で4象限に分け、メニューブック改修の優先度を出す</p>
+
+  <div class="card">
+    <h2><span class="badge">入力</span>メニュー</h2>
+    <div class="toolbar">
+      <button onclick="loadSample()" class="ghost">サンプル</button>
+      <button onclick="exportCSV()" class="ghost">CSV出力</button>
+      <button onclick="document.getElementById('csvFile').click()" class="ghost">CSV読込</button>
+      <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)">
+      <button onclick="clearAll()" class="danger">全消去</button>
+    </div>
+    <div class="threshold">
+      <span style="font-weight:600;">ランク区切り</span>
+      <label>A ≤ <input type="number" id="thA" value="70" min="1" max="99" inputmode="numeric" onchange="render()">%</label>
+      <label>B ≤ <input type="number" id="thB" value="90" min="1" max="99" inputmode="numeric" onchange="render()">%</label>
+    </div>
+    <div class="menu-list" id="menuList"></div>
+    <div class="add-btn-wrap">
+      <button onclick="addRow()">＋ メニューを追加</button>
+    </div>
+  </div>
+
+  <div class="layout-2col">
+    <div class="card">
+      <h2><span class="badge">サマリー</span>全体</h2>
+      <div class="stat">
+        <div class="item"><span>商品数</span><b id="kpiCount">0</b></div>
+        <div class="item"><span>総売上</span><b id="kpiSales">¥0</b></div>
+        <div class="item"><span>総粗利</span><b id="kpiProfit">¥0</b></div>
+        <div class="item"><span>平均粗利率</span><b id="kpiMargin">0%</b></div>
+      </div>
+      <div id="chartWrap"><canvas id="chart"></canvas></div>
+      <details>
+        <summary>分析の前提</summary>
+        <div class="body">
+          売上ABC: 売上構成比の累計でランク分け（デフォ A≤70% / B≤90% / C残り）<br>
+          粗利ABC: 粗利構成比の累計で同様にランク分け<br>
+          バブルチャート: 横=売上, 縦=粗利, サイズ=販売数
+        </div>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2><span class="badge">クロス</span>4象限</h2>
+      <div class="quadrants">
+        <div class="q q-aa">
+          <h3>★ 売上A × 粗利A</h3>
+          <div class="desc">看板・最強化</div>
+          <ul id="q-AA"><li>—</li></ul>
+        </div>
+        <div class="q q-ac">
+          <h3>売上A × 粗利C</h3>
+          <div class="desc">原価重い→改善</div>
+          <ul id="q-AC"><li>—</li></ul>
+        </div>
+        <div class="q q-ca">
+          <h3>売上C × 粗利A</h3>
+          <div class="desc">隠れ優良→押し上げ</div>
+          <ul id="q-CA"><li>—</li></ul>
+        </div>
+        <div class="q q-cc">
+          <h3>売上C × 粗利C</h3>
+          <div class="desc">死に筋→撤去候補</div>
+          <ul id="q-CC"><li>—</li></ul>
+        </div>
+      </div>
+      <details>
+        <summary>各象限の施策</summary>
+        <div class="body">
+          <b>★AA</b>: 表紙/最初の見開き、写真30%大、専用ストーリー枠<br>
+          <b>AC</b>: レシピ改善 or 値上げでリニューアル<br>
+          <b>CA</b>: 掲載位置を上げ、写真追加、ネーミング変更<br>
+          <b>CC</b>: 削除候補。残すなら役割を再定義
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'menu-abc-data-v1';
+let data = [];
+let chart = null;
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+
+function load() {
+  try { const s = localStorage.getItem(STORAGE_KEY); if (s) data = JSON.parse(s); } catch (e) {}
+  if (data.length === 0) addRow(false);
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function addRow(rerender = true) {
+  data.push({ id: uid(), name: '', price: 0, cost: 0, qty: 0 });
+  if (rerender) render();
+}
+function deleteRow(id) {
+  data = data.filter(d => d.id !== id);
+  if (data.length === 0) addRow(false);
+  render();
+}
+function updateField(id, field, value) {
+  const row = data.find(d => d.id === id);
+  if (!row) return;
+  if (field === 'name') row.name = value;
+  else row[field] = parseFloat(value) || 0;
+  save(); render();
+}
+function clearAll() {
+  if (!confirm('全データを消去します。よろしいですか？')) return;
+  data = []; addRow(false); save(); render();
+}
+function loadSample() {
+  data = [
+    { id: uid(), name: '黒毛和牛ステーキ', price: 3800, cost: 1500, qty: 45 },
+    { id: uid(), name: '看板ハンバーグ',   price: 1480, cost: 450,  qty: 180 },
+    { id: uid(), name: 'ランチセットA',    price: 980,  cost: 480,  qty: 220 },
+    { id: uid(), name: '自家製パスタ',     price: 1280, cost: 380,  qty: 95 },
+    { id: uid(), name: '本日の魚料理',     price: 1980, cost: 900,  qty: 30 },
+    { id: uid(), name: 'シーザーサラダ',   price: 880,  cost: 220,  qty: 110 },
+    { id: uid(), name: '自家製デザート',   price: 580,  cost: 120,  qty: 70 },
+    { id: uid(), name: 'グラスワイン',     price: 680,  cost: 180,  qty: 140 },
+    { id: uid(), name: '季節のリゾット',   price: 1380, cost: 520,  qty: 12 },
+    { id: uid(), name: 'チーズ盛り合わせ', price: 1580, cost: 800,  qty: 8 },
+  ];
+  save(); render();
+}
+
+function rankBy(key) {
+  const total = data.reduce((s, d) => s + (d[key] || 0), 0);
+  if (total === 0) return new Map();
+  const sorted = [...data].sort((a, b) => (b[key] || 0) - (a[key] || 0));
+  const thA = parseFloat(document.getElementById('thA').value) || 70;
+  const thB = parseFloat(document.getElementById('thB').value) || 90;
+  const ranks = new Map();
+  let cum = 0;
+  for (const d of sorted) {
+    cum += (d[key] || 0);
+    const pct = (cum / total) * 100;
+    if (pct <= thA) ranks.set(d.id, 'A');
+    else if (pct <= thB) ranks.set(d.id, 'B');
+    else ranks.set(d.id, 'C');
+  }
+  return ranks;
+}
+
+function render() {
+  for (const row of data) {
+    row.sales = (row.price || 0) * (row.qty || 0);
+    row.profit = ((row.price || 0) - (row.cost || 0)) * (row.qty || 0);
+  }
+  const salesRanks = rankBy('sales');
+  const profitRanks = rankBy('profit');
+
+  const list = document.getElementById('menuList');
+  list.innerHTML = '';
+  for (const row of data) {
+    const sR = salesRanks.get(row.id) || '-';
+    const pR = profitRanks.get(row.id) || '-';
+    const div = document.createElement('div');
+    div.className = 'menu-item';
+    div.innerHTML = `
+      <div class="top">
+        <input class="name" type="text" value="${escapeHtml(row.name)}" placeholder="商品名" onchange="updateField('${row.id}','name',this.value)">
+        <button class="del" onclick="deleteRow('${row.id}')" aria-label="削除">×</button>
+      </div>
+      <div class="grid3">
+        <div><label>価格</label><input type="number" inputmode="numeric" value="${row.price || ''}" placeholder="0" onchange="updateField('${row.id}','price',this.value)" min="0"></div>
+        <div><label>原価</label><input type="number" inputmode="numeric" value="${row.cost || ''}" placeholder="0" onchange="updateField('${row.id}','cost',this.value)" min="0"></div>
+        <div><label>販売数</label><input type="number" inputmode="numeric" value="${row.qty || ''}" placeholder="0" onchange="updateField('${row.id}','qty',this.value)" min="0"></div>
+      </div>
+      <div class="results">
+        <div class="kv"><span>売上</span><b>¥${(row.sales || 0).toLocaleString()}</b></div>
+        <div class="kv"><span>粗利</span><b>¥${(row.profit || 0).toLocaleString()}</b></div>
+        <div class="kv"><span>売上R</span><span class="rank rank-${sR}">${sR}</span></div>
+        <div class="kv"><span>粗利R</span><span class="rank rank-${pR}">${pR}</span></div>
+      </div>
+    `;
+    list.appendChild(div);
+  }
+
+  const totalSales = data.reduce((s, d) => s + (d.sales || 0), 0);
+  const totalProfit = data.reduce((s, d) => s + (d.profit || 0), 0);
+  const margin = totalSales > 0 ? (totalProfit / totalSales) * 100 : 0;
+  document.getElementById('kpiCount').textContent = data.filter(d => d.name).length;
+  document.getElementById('kpiSales').textContent = '¥' + totalSales.toLocaleString();
+  document.getElementById('kpiProfit').textContent = '¥' + totalProfit.toLocaleString();
+  document.getElementById('kpiMargin').textContent = margin.toFixed(1) + '%';
+
+  const buckets = { AA: [], AC: [], CA: [], CC: [] };
+  for (const row of data) {
+    if (!row.name) continue;
+    const sR = salesRanks.get(row.id);
+    const pR = profitRanks.get(row.id);
+    if (sR === 'A' && pR === 'A') buckets.AA.push(row.name);
+    else if (sR === 'A' && pR === 'C') buckets.AC.push(row.name);
+    else if (sR === 'C' && pR === 'A') buckets.CA.push(row.name);
+    else if (sR === 'C' && pR === 'C') buckets.CC.push(row.name);
+  }
+  for (const k of ['AA', 'AC', 'CA', 'CC']) {
+    const ul = document.getElementById('q-' + k);
+    ul.innerHTML = buckets[k].length > 0
+      ? buckets[k].map(n => `<li>${escapeHtml(n)}</li>`).join('')
+      : '<li style="color:#aaa">—</li>';
+  }
+
+  renderChart(salesRanks, profitRanks);
+  save();
+}
+
+function renderChart(salesRanks, profitRanks) {
+  const ctx = document.getElementById('chart');
+  const points = data
+    .filter(d => d.name && d.sales > 0)
+    .map(d => {
+      const sR = salesRanks.get(d.id);
+      const pR = profitRanks.get(d.id);
+      let color = 'rgba(150,150,150,0.6)';
+      if (sR === 'A' && pR === 'A') color = 'rgba(46,125,50,0.7)';
+      else if (sR === 'A' && pR === 'C') color = 'rgba(237,108,2,0.7)';
+      else if (sR === 'C' && pR === 'A') color = 'rgba(25,118,210,0.7)';
+      else if (sR === 'C' && pR === 'C') color = 'rgba(183,28,28,0.7)';
+      return { x: d.sales, y: d.profit, r: Math.min(18, Math.sqrt(d.qty || 1) * 2), label: d.name, sR, pR, color };
+    });
+  if (chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type: 'bubble',
+    data: { datasets: [{ data: points, backgroundColor: points.map(p => p.color), borderColor: points.map(p => p.color) }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (c) => {
+              const p = c.raw;
+              return `${p.label}: 売上¥${p.x.toLocaleString()} / 粗利¥${p.y.toLocaleString()} (S:${p.sR}/P:${p.pR})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: '売上 (円)' }, beginAtZero: true, ticks: { font: { size: 10 } } },
+        y: { title: { display: true, text: '粗利 (円)' }, beginAtZero: true, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function exportCSV() {
+  const header = '商品名,価格,原価,販売数,売上,粗利\n';
+  const rows = data.map(d =>
+    [d.name, d.price, d.cost, d.qty, d.sales || 0, d.profit || 0]
+      .map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob(['﻿' + header + rows], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `menu-abc-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+function importCSV(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result.replace(/^﻿/, '');
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const newData = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCSVLine(lines[i]);
+      if (cols.length < 4) continue;
+      newData.push({ id: uid(), name: cols[0] || '', price: parseFloat(cols[1]) || 0, cost: parseFloat(cols[2]) || 0, qty: parseFloat(cols[3]) || 0 });
+    }
+    if (newData.length > 0) { data = newData; save(); render(); }
+  };
+  reader.readAsText(file, 'UTF-8');
+  event.target.value = '';
+}
+function parseCSVLine(line) {
+  const result = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur); return result;
+}
+
+load(); render();
+</script>
+</body>
+</html>
