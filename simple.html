@@ -232,13 +232,31 @@
       <div>
         <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">スタイル</label>
         <select id="pStyle" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
-          <option value="モダンビストロ風">モダンビストロ</option>
-          <option value="和モダン">和モダン</option>
-          <option value="居酒屋・大衆酒場">居酒屋・大衆酒場</option>
-          <option value="カジュアル・親しみやすい">カジュアル</option>
-          <option value="クラシック・高級感">クラシック高級</option>
-          <option value="ナチュラル・素朴">ナチュラル</option>
-          <option value="ポップ・カラフル">ポップ</option>
+          <optgroup label="和食・日本料理">
+            <option value="居酒屋・大衆酒場">居酒屋・大衆酒場</option>
+            <option value="和モダン">和モダン</option>
+            <option value="寿司・割烹">寿司・割烹</option>
+            <option value="焼鳥専門店">焼鳥専門店</option>
+            <option value="そば・うどん">そば・うどん</option>
+            <option value="ラーメン店">ラーメン店</option>
+            <option value="食堂・定食屋">食堂・定食屋</option>
+          </optgroup>
+          <optgroup label="洋食・アジア">
+            <option value="モダンビストロ風">モダンビストロ</option>
+            <option value="イタリアンレストラン">イタリアン</option>
+            <option value="フレンチビストロ">フレンチビストロ</option>
+            <option value="町中華">町中華</option>
+            <option value="焼肉店">焼肉店</option>
+          </optgroup>
+          <optgroup label="カフェ・その他">
+            <option value="昭和レトロ喫茶">昭和レトロ喫茶</option>
+            <option value="カジュアル・親しみやすい">カジュアル</option>
+            <option value="クラシック・高級感">クラシック高級</option>
+            <option value="ナチュラル・素朴">ナチュラル</option>
+            <option value="ポップ・カラフル">ポップ</option>
+            <option value="バー・ワインバー">バー・ワインバー</option>
+            <option value="パン屋・ベーカリー">パン屋・ベーカリー</option>
+          </optgroup>
         </select>
       </div>
     </div>
@@ -577,33 +595,30 @@ function buildPrompt() {
   const bGroup = items.filter(i => i.rank === 'B').map(fmt);
   const cGroup = items.filter(i => i.rank === 'C').map(fmt);
 
-  // Style-specific concrete visual references
-  const isIzakaya = style.includes('居酒屋') || style.includes('大衆');
-  const isJapanese = style.includes('和');
-  const isBistro = style.includes('ビストロ');
-  const isClassic = style.includes('クラシック');
-  const isCasual = style.includes('カジュアル');
-  const isPop = style.includes('ポップ');
-  const isNatural = style.includes('ナチュラル');
+  // Style-specific concrete visual references (dictionary)
+  const VISUAL_REFS = {
+    '居酒屋・大衆酒場': `Visual mood: a 1970s-80s Showa-era Japanese izakaya menu, like the pages of a dancyu magazine izakaya feature. Brush-painted kanji on washi paper texture, weathered wood backgrounds, a red-lantern (赤提灯) atmosphere. Typography uses a refined Japanese serif (mincho-style) for dish names and a brush-script feel for category headings. Slight imperfections welcome — ink bleed, hand-drawn frames. Food photography is warmly lit (warm tungsten, around 2700K), shot top-down at about 30° with shallow depth of field, glistening oil and condensation, dark wood table, in the style of dancyu food photos. Colors: deep red, sumi black, washi cream, with ochre accents. No bright primary colors, no pastels.`,
+    '和モダン': `Visual mood: traditional Japanese kaiseki / Ginza kappo menu in the spirit of a Casa BRUTUS Japanese-cuisine issue. Vertical writing where natural, washi paper texture, hints of gold leaf, sumi-e brush strokes. Typography uses a classical Japanese mincho serif with elegant proportions and generous negative space; furigana on difficult kanji in smaller size. Photography uses soft natural daylight, overhead or 45° angle, minimal styling, pristine white plates. Colors: sumi black, vermillion red, gold accents, washi off-white. Restrained and refined, never garish.`,
+    '寿司・割烹': `Visual mood: a refined sushi or kappo restaurant menu in the spirit of a top-tier Ginza sushi counter. Vertical writing layout, hinoki wood texture, white washi background, calligraphic brush strokes for the restaurant name. Typography is an elegant traditional mincho with generous letter-spacing; dish names treated like haiku poems on the page. Photography uses pristine natural daylight, overhead angle, fish placed on simple ceramic plates with green shiso accents, very minimal styling. Colors: hinoki cream, sumi black, indigo blue (藍色), accent vermillion. Restrained luxury, no decorative ornaments.`,
+    '焼鳥専門店': `Visual mood: a yakitori specialty shop menu, smoky-warm atmosphere of a Tokyo back-alley yakitoriya. Brush-painted dish names on washi or kraft paper, lantern-lit, charcoal-streaked aesthetics. Typography blends bold brush-script for category headings with hand-written-feel mincho for dish names. Photography is dramatic with charcoal-grill backlighting, smoke wafting, rim-lit skewers, shot at low angle. Colors: charcoal black, ember orange (#d96a26), washi cream, slight gold-yellow for grill glow. No clean modern feel — embrace the smoke and heat.`,
+    'そば・うどん': `Visual mood: a refined soba/udon shop menu in the tradition of an Edo-era noodle house, like a Kanda Yabu Soba aesthetic. Vertical writing, washi paper, simple sumi brush illustrations of bamboo or grain. Typography is a classical mincho with calm, balanced spacing; restaurant name often in a single bold brush-stroke. Photography uses overhead natural daylight, simple ceramic or lacquer bowls on a tatami or wood-grain surface, steam rising. Colors: washi off-white, sumi black, deep indigo, with subtle moss-green accent. Quiet, contemplative, not flashy.`,
+    'ラーメン店': `Visual mood: a Tokyo ramen shop menu, gritty-energetic atmosphere of a famous tonkotsu or shoyu specialty shop. Bold brush-painted kanji headings dominate, glossy wall-poster aesthetic, illustrations of flames or rising steam. Typography is heavy and aggressive: brush-script for big headings, condensed sans-serif or display gothic for dish names, prices clearly visible. Photography is warm and saturated — golden-broth glistening, fatty chashu, vivid green negi, shot from a 45° angle that makes the bowl feel hearty. Colors: deep red, gold-yellow broth tones, charcoal black, white. High contrast and appetizing, never bland.`,
+    '食堂・定食屋': `Visual mood: a beloved Showa-era teishoku diner menu (think 大衆食堂 or a 60s station-front shokudo), nostalgic and warm. Plastic-laminated paper feel, slightly faded, with hand-drawn or letter-pressed dish illustrations. Typography mixes a sturdy gothic for dish names with playful brush headers; prices large and clear. Photography is direct and honest — full home-style meal sets shot top-down, plain white rice bowls, miso soup. Colors: cream-yellow background, navy blue, tomato red accents. Earnest and inviting, never trying to be fancy.`,
+    'モダンビストロ風': `Visual mood: a Parisian bistro chalkboard sensibility crossed with Tokyo-modern minimalism, like an ELLE gourmet magazine spread. Clean editorial layout. Typography mixes a humanist sans-serif for headings and prices with a refined serif for dish names; Japanese and French both treated thoughtfully. Photography is shot in natural window light from the left, at about 45°, on a neutral grey or marble background, food slightly off-center for life. Colors: charcoal, warm cream, terracotta or olive accents. Refined, never corporate.`,
+    'イタリアンレストラン': `Visual mood: a Northern Italian trattoria menu in the spirit of a Tuscan kitchen meeting Tokyo neighborhood Italian. Cream paper, hand-drawn olive branch or wine grape motifs, faintly aged feel. Typography uses a classical Italian serif (Garamond or Bodoni feel) for dish names with handwritten-style flourishes for categories. Photography is sun-drenched and warm — pasta on rustic ceramic, olive oil glistening, fresh herbs, shot at 45° with golden-hour light. Colors: cream, terracotta, deep red wine, basil green. Warm Italian sun palette, never cold or modern-corporate.`,
+    'フレンチビストロ': `Visual mood: a classic Parisian bistro menu, sidewalk-cafe nostalgia. Cream paper or chalkboard, hand-lettered French script for headings, fleur-de-lis or wine glass illustrations rendered minimally. Typography uses a refined French serif for dish names with copperplate-style script for the category headers. Photography is moody — golden-hour bistro lighting, dark wooden tables, marble bistro plates, food shot at 30° with warm rim-lighting. Colors: charcoal, cream, burgundy red, brass-gold. Atmospheric and slightly nostalgic, not generic.`,
+    '町中華': `Visual mood: a beloved Japanese-Chinese (町中華) shop menu, working-class Tokyo neighborhood feel. Plastic-laminated red paper, faded, with bold gothic kanji and English subtitles in red and yellow. Typography uses heavy red-and-gold gothic display faces for dish names, prices in equally bold black. Slightly chaotic but charming. Photography is direct and saturated — chahan, gyoza, ramen shot top-down on simple white plates with vivid sauces. Colors: lacquer red, gold-yellow, white, accent black. Energetic, retro-Showa, never refined-modern.`,
+    '焼肉店': `Visual mood: a Korean-Japanese yakiniku restaurant menu, smoky-luxurious. Black or dark brown leather-feel cover, gold or copper foil accents, marbled meat illustration as a hero motif. Typography uses bold sans-serif gothic for cuts of meat and refined serif for descriptions. Photography is dramatic — close-up shots of beautifully marbled wagyu, rim-lit with red glow from grill, shot at 30° on charcoal-black slate. Colors: deep charcoal, blood red, gold, with cream accent. Luxurious and carnivorous, not casual.`,
+    '昭和レトロ喫茶': `Visual mood: a Showa-era Japanese kissaten (coffee shop) menu, 1970s nostalgic atmosphere. Aged paper, faded ink, illustrations of cream soda or napolitan in retro vector style. Typography mixes 70s display faces (think original Cinema or Kissa script) with handwritten descriptions; soft pastel highlight colors. Photography is warm-toned and slightly faded, on dark wood tables with vintage glassware. Colors: faded cream-yellow, retro orange, dusty teal, dark wood brown. Intentionally aged, not pristine.`,
+    'カジュアル・親しみやすい': `Visual mood: a friendly neighborhood Tokyo cafe menu, modern yet warm — think Bear Pond Espresso or Onibus Coffee, in the spirit of a BRUTUS magazine cafe feature. Typography is a rounded humanist sans-serif with some lightly hand-drawn elements, approachable. Photography is natural-light, casually framed, with bright airy feel. Colors: warm beige, forest green or soft terracotta accents, white space dominant. Never childish or corporate.`,
+    'クラシック・高級感': `Visual mood: a high-end hotel restaurant menu in the spirit of a Park Hyatt Tokyo or Ritz Carlton. Hints of gold foil and leather, with copper-plate engraving feel. Typography is a classical serif in all-caps for headings with refined italic descriptions and generous letter-spacing. Photography is dramatic chiaroscuro on dark moody backgrounds, dishes rim-lit, fine-dining plating. Colors: deep navy or wine, gold, ivory. Luxurious but never gaudy.`,
+    'ナチュラル・素朴': `Visual mood: an organic farm-to-table cafe with a kraft paper menu feel, hand-stamped, earthy and intentional, like a BRUTUS or &Premium feature. Typography mixes a typewriter-style serif with lightly hand-stamped or hand-written elements; alignment slightly imperfect for warmth. Photography uses natural daylight on raw wood or linen, ingredients visible. Colors: kraft brown, forest green, cream — no synthetic colors. Earthy without being a rustic cliche.`,
+    'ポップ・カラフル': `Visual mood: a Tokyo neon-lit ramen-shop menu board crossed with retro Showa-pop and Taiwan night-market energy, in the playful editorial spirit of POPEYE magazine. Typography uses bold display faces with varied sizes for energy, occasionally varied color per word, retro-arcade feel. Photography is bright and saturated, flat-lay friendly, with fun props, composed not chaotic. Colors: vivid cyan, magenta, yellow with strong contrast.`,
+    'バー・ワインバー': `Visual mood: a Tokyo wine bar or speakeasy menu, intimate-moody atmosphere. Dark paper or leather-bound cover, gold-foil typography, faint marble or aged-wood texture. Typography uses an elegant serif (Didone-style) with delicate hairlines for dish names; categories in small caps. Photography is low-key — wine glasses catching warm candlelight, charcuterie boards on dark wood, shallow focus. Colors: deep burgundy, charcoal, gold, with cream accent. Sophisticated, never corporate or party-loud.`,
+    'パン屋・ベーカリー': `Visual mood: an artisanal Tokyo bakery menu, warm-bread-fresh-out-of-oven atmosphere. Cream or kraft paper, hand-drawn wheat illustrations or simple line drawings of pastries, slightly textured paper feel. Typography uses a friendly serif with handwritten chalk-style for daily-special headers. Photography is golden natural daylight on bread-cooling-rack textures, butter-crumb close-ups, shot on linen or wood. Colors: warm wheat-cream, butter-yellow, espresso brown, accent forest green. Cozy, never industrial.`,
+  };
 
-  let visualRef = '';
-  if (isIzakaya) {
-    visualRef = `Visual mood: a 1970s-80s Showa-era Japanese izakaya menu, like the pages of a dancyu magazine izakaya feature. Brush-painted kanji on washi paper texture, weathered wood backgrounds, a red-lantern (赤提灯) atmosphere. Typography uses a refined Japanese serif (mincho-style) for dish names and a brush-script feel for category headings. Slight imperfections welcome — ink bleed, hand-drawn frames. Food photography is warmly lit (warm tungsten, around 2700K), shot top-down at about 30° with shallow depth of field, glistening oil and condensation, dark wood table, in the style of dancyu food photos. Colors: deep red, sumi black, washi cream, with ochre accents. No bright primary colors, no pastels.`;
-  } else if (isJapanese) {
-    visualRef = `Visual mood: traditional Japanese kaiseki / Ginza kappo menu in the spirit of a Casa BRUTUS Japanese-cuisine issue. Vertical writing where natural, washi paper texture, hints of gold leaf, sumi-e brush strokes. Typography uses a classical Japanese mincho serif with elegant proportions and generous negative space; furigana on difficult kanji in smaller size. Photography uses soft natural daylight, overhead or 45° angle, minimal styling, pristine white plates. Colors: sumi black, vermillion red, gold accents, washi off-white. Restrained and refined, never garish.`;
-  } else if (isBistro) {
-    visualRef = `Visual mood: a Parisian bistro chalkboard sensibility crossed with Tokyo-modern minimalism, like an ELLE gourmet magazine spread. Clean editorial layout. Typography mixes a humanist sans-serif for headings and prices with a refined serif for dish names; Japanese and French both treated thoughtfully. Photography is shot in natural window light from the left, at about 45°, on a neutral grey or marble background, food slightly off-center for life. Colors: charcoal, warm cream, terracotta or olive accents. Refined, never corporate.`;
-  } else if (isClassic) {
-    visualRef = `Visual mood: a high-end hotel restaurant menu in the spirit of a Park Hyatt Tokyo or Ritz Carlton. Hints of gold foil and leather, with copper-plate engraving feel. Typography is a classical serif in all-caps for headings with refined italic descriptions and generous letter-spacing. Photography is dramatic chiaroscuro on dark moody backgrounds, dishes rim-lit, fine-dining plating. Colors: deep navy or wine, gold, ivory. Luxurious but never gaudy.`;
-  } else if (isCasual) {
-    visualRef = `Visual mood: a friendly neighborhood Tokyo cafe menu, modern yet warm — think Bear Pond Espresso or Onibus Coffee, in the spirit of a BRUTUS magazine cafe feature. Typography is a rounded humanist sans-serif with some lightly hand-drawn elements, approachable. Photography is natural-light, casually framed, with bright airy feel. Colors: warm beige, forest green or soft terracotta accents, white space dominant. Never childish or corporate.`;
-  } else if (isPop) {
-    visualRef = `Visual mood: a Tokyo neon-lit ramen-shop menu board crossed with retro Showa-pop and Taiwan night-market energy, in the playful editorial spirit of POPEYE magazine. Typography uses bold display faces with varied sizes for energy, occasionally varied color per word, retro-arcade feel. Photography is bright and saturated, flat-lay friendly, with fun props, composed not chaotic. Colors: vivid cyan, magenta, yellow with strong contrast.`;
-  } else if (isNatural) {
-    visualRef = `Visual mood: an organic farm-to-table cafe with a kraft paper menu feel, hand-stamped, earthy and intentional, like a BRUTUS or &Premium feature. Typography mixes a typewriter-style serif with lightly hand-stamped or hand-written elements; alignment slightly imperfect for warmth. Photography uses natural daylight on raw wood or linen, ingredients visible. Colors: kraft brown, forest green, cream — no synthetic colors. Earthy without being a rustic cliche.`;
-  } else {
-    visualRef = `Visual mood: a high-quality professionally designed restaurant menu with an editorial magazine layout. Refined Japanese typography with proper kerning and a clear hierarchy. Professional food photography with natural lighting, magazine quality.`;
-  }
+  const visualRef = VISUAL_REFS[style] || `Visual mood: a high-quality professionally designed restaurant menu with an editorial magazine layout. Refined Japanese typography with proper kerning and a clear hierarchy. Professional food photography with natural lighting, magazine quality.`;
 
   // Quote each dish for verbatim rendering (per OpenAI cookbook best practice)
   const aQuoted = items.filter(i => i.rank === 'A').map(i => `"${i.name} ¥${(i.price || 0).toLocaleString()}"`);
