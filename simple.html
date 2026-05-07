@@ -256,7 +256,39 @@
       <button onclick="buildPrompt()">プロンプト生成</button>
       <button onclick="copyPrompt()" class="ghost">コピー</button>
     </div>
-    <textarea id="promptBox" placeholder="「プロンプト生成」を押すと、ABCランクを反映したプロンプトがここに表示されます" style="width:100%;min-height:200px;border:1px solid var(--line);border-radius:6px;padding:10px;font-family:ui-monospace,monospace;font-size:12px;background:#fafafa;resize:vertical;"></textarea>
+    <textarea id="promptBox" placeholder="「プロンプト生成」を押すと、ABCランクを反映したプロンプトがここに表示されます" style="width:100%;min-height:240px;border:1px solid var(--line);border-radius:6px;padding:10px;font-family:ui-monospace,monospace;font-size:12px;background:#fafafa;resize:vertical;"></textarea>
+
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--line);">
+      <h3 style="font-size:13px;margin:0 0 8px;">画像生成（任意）</h3>
+      <div style="background:#fff3e0;border:1px solid #ed6c02;border-radius:6px;padding:8px 10px;font-size:11px;color:#ed6c02;margin-bottom:10px;">
+        OpenAI APIキー必要。料金はOpenAI側で課金（high画質で1枚 約$0.17）
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">OpenAI APIキー</label>
+        <input type="password" id="apiKey" placeholder="sk-..." style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:inherit;background:white;">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">画質</label>
+          <select id="imgQuality" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+            <option value="low">low（速・$0.04）</option>
+            <option value="medium" selected>medium（$0.08）</option>
+            <option value="high">high（高画質・$0.17）</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">サイズ</label>
+          <select id="imgSize" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+            <option value="1024x1024">1024×1024</option>
+            <option value="1536x1024" selected>1536×1024 (横)</option>
+            <option value="1024x1536">1024×1536 (縦)</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="generateImage()" id="genBtn" style="width:100%;padding:12px;">画像を生成</button>
+      <div style="font-size:12px;color:var(--ink-sub);margin-top:8px;" id="genStatus"></div>
+      <div id="imageResult"></div>
+    </div>
   </div>
 
   <!-- Recommendations -->
@@ -545,65 +577,119 @@ function buildPrompt() {
   const bGroup = items.filter(i => i.rank === 'B').map(fmt);
   const cGroup = items.filter(i => i.rank === 'C').map(fmt);
 
-  // Style-specific design hints (book-derived)
+  // Style-specific concrete visual references
   const isIzakaya = style.includes('居酒屋') || style.includes('大衆');
   const isJapanese = style.includes('和');
-  const styleHint = isIzakaya
-    ? '赤・白・黒の3色配色を強く推奨（名物=赤バックに白文字、2番手の推し=赤字、通常=黒字）。手書き風フォント要素・赤い筆風の丸囲み・和紙風背景の活用も効果的。'
-    : isJapanese
-    ? '和紙風背景・縦書き要素・落ち着いた配色（墨黒・朱赤・生成色など）。読みにくい漢字にはふりがなを添える。'
-    : '見出し・料理名・価格の文字サイズと太さで明確なメリハリ。カテゴリーごとに背景色を変えて視線誘導。';
+  const isBistro = style.includes('ビストロ');
+  const isClassic = style.includes('クラシック');
+  const isCasual = style.includes('カジュアル');
+  const isPop = style.includes('ポップ');
+  const isNatural = style.includes('ナチュラル');
 
-  const prompt = `あなたはプロのメニューブックデザイナーです。「飲食店完全バイブル」（河野祐治・笠岡はじめ著）のフレームに従って、以下の飲食店向けに${purpose}をデザインしてください。
+  let visualRef = '';
+  if (isIzakaya) {
+    visualRef = `Style reference: dancyu magazine izakaya feature, 1970s Showa-era Japanese pub aesthetic, hand-painted signage like 大衆酒場「斎藤」or 「岸田屋」, brush-painted kanji on washi paper, weathered wood texture, red lantern (赤提灯) atmosphere
+Typography: 筑紫オールド明朝 or 游明朝 for menu names; brush-script (筆文字) for category headers; signs of imperfection (slight ink bleed, hand-drawn frames)
+Photography: warm tungsten lighting at 2700K, top-down 30° angle, shallow depth of field, glistening oil/condensation on dishes, dark wooden table, dancyu magazine food photo style
+Color palette: 朱赤 (#c8242c), 墨黒 (#1a1a1a), 生成 (#f4ecd8), accent 黄土 (#a67d3d). NO bright primary colors, NO pastels.`;
+  } else if (isJapanese) {
+    visualRef = `Style reference: 銀座割烹のメニュー, traditional Japanese kaiseki menu, Casa BRUTUS Japanese cuisine issue, vertical writing (縦書き), washi paper texture, gold leaf accents, sumi-e brush strokes
+Typography: 筑紫アンティークL明朝 for prices and names, traditional vertical layout, generous use of negative space, ふりがな (furigana) on difficult kanji in smaller size
+Photography: natural daylight, overhead or 45° angle, minimal styling, pristine white plates, dancyu or NEUTRAL Magazine aesthetic
+Color palette: 墨 (#1c1c1c), 朱 (#bc4530), 金 (#c9a961) accents, washi off-white (#f0e9d8). Restrained, refined, NOT garish.`;
+  } else if (isBistro) {
+    visualRef = `Style reference: Parisian bistro chalkboard menu meets Tokyo-modern minimalism, ELLE gourmet magazine spread, Casa Brutus restaurant feature, clean editorial layout
+Typography: Sans-serif (Noto Sans JP / Helvetica Now) for prices and headings; serif (Noto Serif JP / Garamond) for menu names; mixed Japanese+French body text
+Photography: natural window light from left, 45° angle, neutral grey or marble background, French bistro food styling with imperfection (slightly off-center), shallow depth of field
+Color palette: charcoal (#2a2a2a), warm cream (#f4ede0), terracotta (#c8541a) or olive (#6b7d3a) accent. Refined, NOT corporate.`;
+  } else if (isClassic) {
+    visualRef = `Style reference: high-end hotel restaurant menu (think Park Hyatt Tokyo, Ritz Carlton), gold foil details, leather-bound menu cover, copper plate engraving, royal restaurant aesthetic
+Typography: classic serif (Trajan Pro, Bodoni, Caslon) all-caps for headings; refined italic for descriptions; generous letter-spacing
+Photography: dramatic chiaroscuro lighting, dark moody background, rim-lit dishes, fine-dining plating, food photography by Kohei Kobayashi style
+Color palette: deep navy (#1a2a3e) or wine (#5b1a2c), gold (#c9a961), ivory (#f4ede0). Luxury, refined, NOT gaudy.`;
+  } else if (isCasual) {
+    visualRef = `Style reference: friendly neighborhood cafe menu, modern but warm, like Tokyo cafe Bear Pond Espresso or Onibus Coffee menu, BRUTUS magazine cafe feature
+Typography: rounded sans-serif (Noto Sans JP), some hand-drawn elements, friendly approachable tone
+Photography: natural light, casual framing, slight imperfections, bright airy aesthetic
+Color palette: warm beige (#e8dcc4), forest green (#3a5a3a) or soft terracotta (#c8765a) accent, white space dominant. NOT childish, NOT corporate.`;
+  } else if (isPop) {
+    visualRef = `Style reference: Taiwan night market menu, retro showa-pop, Tokyo neon-lit ramen shop menu board, vibrant playful editorial like POPEYE magazine
+Typography: bold display fonts, mixed sizes for energy, varied colors per word, retro arcade aesthetic
+Photography: bright saturated colors, flat lay, fun props, Wes Anderson-symmetric composition possible
+Color palette: cyan (#00b4d8), magenta (#e91e63), yellow (#ffd23f), bold contrast, but composed not chaotic.`;
+  } else if (isNatural) {
+    visualRef = `Style reference: organic farm-to-table cafe (think Tokyo Buchis Bake or Be A Good Neighbor), kraft paper menu, hand-stamped, earthy aesthetic
+Typography: typewriter serif (Courier or Cormorant), some hand-stamped or hand-written elements, slightly imperfect alignment
+Photography: natural daylight, raw wood or linen background, ingredients shown, food magazine "&Premium" aesthetic
+Color palette: kraft brown (#8b6f47), forest (#4a5d3a), cream (#f4ede0), no synthetic colors. Earthy, NOT rustic-cliche.`;
+  } else {
+    visualRef = `Style reference: high-quality professionally designed restaurant menu, editorial magazine layout
+Typography: refined Japanese typography with proper kerning, mixed serif/sans-serif hierarchy
+Photography: professional food photography, natural lighting, magazine quality
+Color palette: refined and intentional, NOT generic.`;
+  }
+
+  const prompt = `Design a professional restaurant menu (${purpose}) at the level of a top-tier Japanese editorial magazine (dancyu / Casa BRUTUS / ELLE gourmet). This is NOT a generic template — every element must be intentional and beautifully crafted.
 
 # 店のコンセプト
 ${concept || '（未入力）'}
 
 # 商品配置（売上ABC分析に基づく）
 
-## 主役商品（A群／売上上位／全体の約70%を生む）
+## 主役商品（A群／売上の約70%を生む看板）
 ${aGroup.length > 0 ? aGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
-→ **写真は他より約30%大きく**、専用ストーリー枠付き、左上または見開きの最も目に留まる位置に配置。
+→ 写真を他より約30%大きく、専用枠つき、左上または見開き最強位置。商品名は最も大きいフォント。**産地・素材・食べ方・店主のひと言**を1〜2行添える。
 
-## 脇役商品（B群／安定品／全体の約20%）
+## 脇役商品（B群／安定品／約20%）
 ${bGroup.length > 0 ? bGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
-→ 整列配置。主役を引き立てる脇役として扱う。
+→ 整列配置。料理名のみ＋小さめ写真。
 
-## 補助商品（C群／参考表示／全体の約10%）
+## 補助商品（C群／参考表示／約10%）
 ${cGroup.length > 0 ? cGroup.map(n => '- ' + n).join('\n') : '（なし）'}
-→ 小さめに、リスト形式で簡潔に。
+→ リスト形式、写真なし、コンパクト。
 
-# デザイン指示
+# Visual & typography direction (CRITICAL)
+${visualRef}
 
-## スタイル
-${style} ／ カラートーン: ${tone}
-${styleHint}
+# Layout & composition
+- Editorial magazine grid (think 8-column or 12-column system, not centered everything)
+- Asymmetric balance preferred over symmetric
+- Hero dish dominates upper-left or full-bleed
+- Generous negative space (40%+ of layout)
+- Clear hierarchy: hero → category headers → dish names → descriptions → prices
+- Categories separated by subtle divider (thin rule, color block, or whitespace)
 
-## 文字・フォント
-- 見出し（カテゴリー名）はユニークな書体で印象を強化
-- 料理名は読みやすい和文で大きめに、価格はやや控えめ
-- 文字の太さ・大きさで明確なメリハリ（重要情報を視覚的に区別）
-- 読みにくい漢字には**ふりがな**を添える
+# Typography hierarchy (specific)
+- Hero dish name: 28-36pt, mixed Japanese+English if applicable
+- Category header: 18-22pt, distinct typeface (often display or brush)
+- Regular dish name: 14-16pt
+- Description: 10-12pt, lighter weight
+- Price: 12-14pt, NOT emphasized over the dish, ¥mark consistent
+- Furigana on hard kanji: 50% of base size, gray
+- Line height: 1.4-1.6 for readability
 
-## 視線誘導・アイコン
-- カテゴリーごとに背景色を変えて視線を自然に誘導
-- 必要に応じて以下のアイコンを使用: 「推」（おすすめ）「早」（すぐ出る）「生」「温」「冷」
-- 名物商品にはマークや赤い筆風の丸囲みで強調
+# Icons (use sparingly, only if it fits the style)
+推 (recommended) / 早 (quick-serve) / 生 (raw) / 温 (warm) / 冷 (cold) — small, monochrome, integrated
 
-## 商品説明
-- 主役商品には**産地・素材・食べ方・店主のひと言**を簡潔に添える（1〜2行）
-- 「まずはコレ！」のような誘導コメントを名物に付ける
+# Price formatting
+- Use exact prices listed above (no modification)
+- Format: ¥3,800 or ￥3,800 (consistent throughout)
+- Position: aligned to right edge or beside dish name
+- DO NOT enlarge or color-emphasize prices
 
-## 価格表記
-- 上記の金額をそのまま使用（金額の改変禁止）
-- 強調しすぎず、読みやすい位置に配置（商品の魅力を優先）
-- ¥マークは統一感を持たせる
+# AVOID (these make it look amateur)
+- Generic clipart-style icons
+- Cheap gradient backgrounds
+- Stock-photo aesthetic food images
+- Centered everything
+- Word art or shadow effects
+- Over-decoration (fleur-de-lis, scrollwork, generic ornaments)
+- AI-generic uniformity, all-the-same stock-templated look
+- Bland beige or peach generic restaurant template
+- "となりの店と違和感がない" generic look — this menu must look like THIS specific restaurant only
 
-## 構成原則
-- 初来店客でも迷わない明確な構造
-- 「となりの店と違和感がない」一般的なデザインは避け、**この店らしさ**を出す
-- 適度な余白で上品さと読みやすさを両立
-- 全体に清潔感と料理への期待感`;
+# Final note
+Render as if shot for an editorial spread. Imperfections OK if intentional (hand-drawn brush stroke, slight ink bleed, real paper texture). Make it look like a designer with 15 years of restaurant menu experience crafted it specifically for this店, not a template anyone could use.`;
 
   document.getElementById('promptBox').value = prompt;
 }
@@ -618,6 +704,71 @@ function copyPrompt() {
     setTimeout(() => btn.textContent = orig, 1500);
   });
 }
+
+async function generateImage() {
+  const apiKeyEl = document.getElementById('apiKey');
+  const apiKey = apiKeyEl.value.trim();
+  const prompt = document.getElementById('promptBox').value.trim();
+  const size = document.getElementById('imgSize').value;
+  const quality = document.getElementById('imgQuality').value;
+  const status = document.getElementById('genStatus');
+  const result = document.getElementById('imageResult');
+  const btn = document.getElementById('genBtn');
+
+  if (!apiKey) { status.textContent = '⚠ APIキーを入力してください'; return; }
+  if (!prompt) { status.textContent = '⚠ 先にプロンプトを生成してください'; return; }
+
+  // Save apiKey to localStorage
+  localStorage.setItem('openai-api-key', apiKey);
+
+  btn.disabled = true;
+  status.textContent = '画像生成中... (' + (quality === 'high' ? '1〜2分' : '30秒〜1分') + ')';
+  result.innerHTML = '';
+
+  try {
+    const res = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt: prompt,
+        size: size,
+        quality: quality,
+        n: 1,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      status.textContent = '✗ エラー: ' + (data.error?.message || res.statusText);
+      btn.disabled = false;
+      return;
+    }
+    const b64 = data.data?.[0]?.b64_json;
+    const url = data.data?.[0]?.url;
+    if (b64) {
+      result.innerHTML = `<img src="data:image/png;base64,${b64}" alt="生成画像" style="max-width:100%;border-radius:8px;border:1px solid var(--line);margin-top:12px;">`;
+    } else if (url) {
+      result.innerHTML = `<img src="${url}" alt="生成画像" style="max-width:100%;border-radius:8px;border:1px solid var(--line);margin-top:12px;">`;
+    } else {
+      status.textContent = '✗ 画像データが取得できませんでした';
+      btn.disabled = false;
+      return;
+    }
+    status.textContent = '✓ 生成完了';
+  } catch (e) {
+    status.textContent = '✗ 通信エラー: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+// Restore apiKey on load
+document.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('openai-api-key');
+  if (saved) document.getElementById('apiKey').value = saved;
+});
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
