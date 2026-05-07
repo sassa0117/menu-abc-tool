@@ -527,8 +527,10 @@ function buildPrompt() {
 
   // Use sales ABC for prompt (more relevant for menu book)
   const { items } = rankAndAggregate('sales');
-  const aGroup = items.filter(i => i.rank === 'A').map(i => i.name);
-  const bGroup = items.filter(i => i.rank === 'B').map(i => i.name);
+  const fmt = i => `${i.name}（¥${(i.price || 0).toLocaleString()}）`;
+  const aGroup = items.filter(i => i.rank === 'A').map(fmt);
+  const bGroup = items.filter(i => i.rank === 'B').map(fmt);
+  const cGroup = items.filter(i => i.rank === 'C').map(fmt);
 
   const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、メニューブックの表紙＋最初の見開きをデザインしてください。
 
@@ -541,13 +543,16 @@ ${aGroup.length > 0 ? aGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
 【脇役商品（B群・安定品）】
 ${bGroup.length > 0 ? bGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
 
+【補助商品（C群・参考表示）】
+${cGroup.length > 0 ? cGroup.map(n => '- ' + n).join('\n') : '（なし）'}
+
 【デザイン指示】
 - スタイル: ${style}
 - カラートーン: ${tone}
 - 主役は写真大きく、脇役は整列して配置
 - 視線誘導が明確で初来店客でも迷わない構成
 - フォントは読みやすい和文（必要に応じて欧文も）
-- 価格表記は分かりやすい位置に
+- 価格表記は上記の金額をそのまま使用、読みやすい位置・サイズで配置
 - 全体に清潔感と料理への期待感を持たせる`;
 
   document.getElementById('promptBox').value = prompt;
