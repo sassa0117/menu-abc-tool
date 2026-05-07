@@ -662,44 +662,44 @@ function buildPrompt() {
   };
 
   const LAYOUT_REFS = {
-    'magazine-asymmetric': 'Layout: editorial magazine spread with asymmetric balance, hierarchical compound grid. The hero element dominates the upper-left or one full-bleed area; supporting elements arrange in irregular but considered positions. Heavy use of white space (around 40%) and varied column widths.',
-    'modular-grid': 'Layout: clean modular grid system, items aligned in regular rows and columns like a refined catalog. Each cell maintains consistent proportions. Photos when present sit in defined frames with tight kerning. Industrial-design discipline.',
-    'vertical-classic': 'Layout: traditional vertical writing (縦書き) layout, right-to-left reading flow. Generous side margins, dish names rendered as vertical character columns. Inspired by classical Japanese kaiseki menus and Edo-era documents.',
-    'chalkboard': 'Layout: chalkboard-style menu, hand-drawn frames and dividers in chalk-white on dark slate. Dish names sit in informal hand-lettered groupings, with daily-special boxes drawn freehand. Café-front sandwich-board feel.',
-    'single-poster': 'Layout: a single-poster format with one dominant hero image filling 60-70% of the frame, dish details flowing around it like a movie poster or magazine cover. Strong focal point, dramatic typography hierarchy.',
-    'list-compact': 'Layout: dense list-style menu with no photos. Dish names align in tight columns with prices on the right. Visual hierarchy via typography weight and color only. Reference: classic European trattoria all-text menus.',
-    'trifold': 'Layout: trifold pamphlet structure with three vertical panels of equal width. Each panel has its own theme/category, joined visually but read independently. Compact and informative.',
+    'magazine-asymmetric': 'The page is composed as an editorial magazine spread with asymmetric balance and a hierarchical compound grid. The hero element dominates the upper-left or one full-bleed area; supporting elements arrange in irregular but considered positions. Around 40% of the area is generous whitespace, with varied column widths giving visual rhythm.',
+    'modular-grid': 'The composition uses a clean modular grid, items aligned in regular rows and columns like a refined catalog. Each cell maintains consistent proportions; photographs when present sit in defined frames with tight, intentional kerning. The discipline feels industrial-design.',
+    'vertical-classic': 'The composition uses a traditional vertical writing flow (縦書き) read right-to-left, with generous side margins. Dish names appear as vertical character columns inspired by classical Japanese kaiseki menus and Edo-era documents.',
+    'chalkboard': 'The composition imitates a chalkboard menu — hand-drawn frames and dividers in chalk-white over dark slate, dish names in informal hand-lettered groupings, daily-special boxes drawn freehand. Café-front sandwich-board feel throughout.',
+    'single-poster': 'The composition is a single-poster format with one dominant hero image filling 60-70% of the frame; dish details flow around it like a movie poster or magazine cover. A single strong focal point with dramatic typography hierarchy.',
+    'list-compact': 'The composition is a dense list-style with no photographs. Dish names align in tight columns with prices on the right edge, hierarchy created entirely through typography weight and color, in the spirit of classic European trattoria all-text menus.',
+    'trifold': 'The composition is a trifold pamphlet of three vertical panels of equal width. Each panel carries its own theme or category, visually unified but read independently — compact and informative.',
   };
 
   const TASTE_REFS = {
-    'editorial': 'Taste: editorial magazine sensibility (think Casa BRUTUS, ELLE gourmet, dancyu) — refined typography, intentional whitespace, cinematic photography, journalistic captions. Designed by a magazine art director.',
-    'minimal': 'Taste: minimalist design language — extreme white space, single accent color, geometric simplicity, uncompromising restraint. Reference: Kenya Hara, MUJI menu aesthetic, Helvetica-driven Swiss design.',
-    'vintage': 'Taste: vintage-retro feel with intentional aging, slight paper texture, faded color, period-appropriate typography (1950s-70s). Imperfections embraced for authentic character.',
-    'bold': 'Taste: bold and unapologetic — large display typography, high-contrast color blocking, confident hierarchy. Reference: Massimo Vignelli, brutalist editorial design, statement typography.',
-    'handcrafted': 'Taste: handcrafted-organic feel, hand-stamped or hand-lettered elements, slightly imperfect alignment for warmth. Materials feel real (kraft paper, linen, wood). Designed by a maker, not a corporate designer.',
-    'decorative': 'Taste: decorative-traditional richness, ornamental borders, classical motifs (Japanese 文様, French fleur-de-lis, Italian renaissance), elaborate typographic flourishes. Maximalist but composed.',
-    'luxury': 'Taste: luxury hotel-restaurant feel, gold foil hints, dark moody backgrounds, copper-plate engraving sensibility, classical serif in small caps. Reference: Park Hyatt menus, Ritz Carlton fine dining.',
-    'pop': 'Taste: pop-vibrant playfulness — bright saturated colors, retro-arcade typography, varied sizes for energy, POPEYE magazine spirit. Composed energy, not chaos.',
-    'showa-retro': 'Taste: Showa retro nostalgia — 1970s Japanese aesthetic, faded primary colors, halftone textures, period-display typography, kissaten-warm warmth.',
+    'editorial': 'The overall sensibility is editorial-magazine (Casa BRUTUS, ELLE gourmet, dancyu) — refined typography, intentional whitespace, cinematic photography, journalistic captions, as if designed by a magazine art director.',
+    'minimal': 'The overall sensibility is minimalist — extreme white space, a single accent color, geometric simplicity, uncompromising restraint. Reference points include Kenya Hara, MUJI menu aesthetic, and Helvetica-driven Swiss design.',
+    'vintage': 'The overall sensibility is vintage-retro with intentional aging — slight paper texture, faded color, period-appropriate typography from the 1950s-70s. Imperfections are embraced for authentic character.',
+    'bold': 'The overall sensibility is bold and unapologetic — large display typography, high-contrast color blocking, confident hierarchy. Reference points include Massimo Vignelli, brutalist editorial design, and statement typography.',
+    'handcrafted': 'The overall sensibility is handcrafted-organic — hand-stamped or hand-lettered elements, slightly imperfect alignment for warmth. Materials feel real (kraft paper, linen, wood), as if designed by a maker rather than a corporate designer.',
+    'decorative': 'The overall sensibility is decorative-traditional — ornamental borders, classical motifs (Japanese 文様, French fleur-de-lis, Italian renaissance flourishes), elaborate typographic detail. Maximalist but composed.',
+    'luxury': 'The overall sensibility is luxury hotel-restaurant — hints of gold foil, dark moody backgrounds, copper-plate engraving feel, classical serif in small caps. Reference points include Park Hyatt and Ritz Carlton fine-dining menus.',
+    'pop': 'The overall sensibility is pop-vibrant playfulness — bright saturated colors, retro-arcade typography, varied sizes for energy, in the spirit of POPEYE magazine. Composed energy, never chaos.',
+    'showa-retro': 'The overall sensibility is Showa-retro nostalgia — 1970s Japanese aesthetic, faded primary colors, halftone textures, period-display typography, kissaten-warm warmth.',
   };
 
   const PHOTO_REFS = {
-    'photo-hero': 'Photography: one or two large hero photographs dominate, shot in natural daylight, shallow depth of field, magazine-quality food styling. Other dishes appear with smaller photos or none.',
-    'photo-mixed': 'Photography: balanced mix of photos and text — several mid-size photos for featured dishes, rest as text-only. Photos shot at 30-45° angles in natural or warm light.',
-    'flatlay': 'Photography: top-down flat-lay photography for all featured dishes, on a unified surface (linen, marble, wood, or washi). Symmetrical or rule-of-thirds composition. Even soft lighting.',
-    'dramatic': 'Photography: dramatic chiaroscuro lighting, dishes rim-lit on dark moody backgrounds, food rendered like fine-art still-life. Reference: Aaron Graubart, dramatic restaurant editorial.',
-    'illustration': 'Visuals: hand-drawn illustrations replace photographs — line drawings, watercolor, or block-print style depictions of dishes. Adds craft character.',
-    'text-only': 'Visuals: no food photographs at all — typography and layout do all the work. Visual interest comes from typographic hierarchy, color blocks, and decorative ornaments.',
+    'photo-hero': 'One or two large hero photographs dominate, shot in natural daylight with shallow depth of field and magazine-quality food styling. Other dishes appear with smaller photos or none.',
+    'photo-mixed': 'Photographs and text are balanced — several mid-size photos for featured dishes, the rest text-only. Photos are shot at 30-45° angles in natural or warm light.',
+    'flatlay': 'All featured dishes are shown in top-down flat-lay photography on a unified surface (linen, marble, wood, or washi). Symmetrical or rule-of-thirds composition with even soft lighting.',
+    'dramatic': 'Photographs use dramatic chiaroscuro lighting, dishes rim-lit on dark moody backgrounds, rendered like fine-art still-life in the spirit of Aaron Graubart and dramatic restaurant editorial work.',
+    'illustration': 'Hand-drawn illustrations replace photographs — line drawings, watercolor, or block-print style depictions of dishes, adding craft character.',
+    'text-only': 'There are no food photographs at all — typography and layout do all the work, with visual interest coming from typographic hierarchy, color blocks, and decorative ornaments.',
   };
 
   const COLOR_HINTS = {
-    '暖色系（オレンジ・赤・茶）': 'Color palette: warm oranges, deep reds, rich browns, with cream highlights. Appetite-stimulating warmth.',
-    '寒色系（青・緑）': 'Color palette: cool blues and greens with white or cream balance. Calm, fresh.',
-    'モノトーン': 'Color palette: strict monochrome — black, white, and tones of gray. Absolute restraint.',
-    'ナチュラル（ベージュ・木目）': 'Color palette: natural earth tones — warm beige, kraft brown, cream, with forest green or terracotta accents.',
-    'パステル': 'Color palette: soft pastels — dusty pink, mint, butter yellow, lavender. Gentle and modern.',
-    'ビビッド・ハイコントラスト': 'Color palette: highly saturated vivid colors with strong contrast — cyan, magenta, yellow, against deep black or pure white.',
-    'セピア・アース': 'Color palette: sepia and earth tones — faded browns, rust, ochre, aged ivory. Vintage warmth.',
+    '暖色系（オレンジ・赤・茶）': 'The palette uses warm oranges, deep reds, and rich browns with cream highlights — appetite-stimulating warmth.',
+    '寒色系（青・緑）': 'The palette uses cool blues and greens balanced with white or cream — calm and fresh.',
+    'モノトーン': 'The palette is strictly monochrome — black, white, and tones of gray, with absolute restraint.',
+    'ナチュラル（ベージュ・木目）': 'The palette uses natural earth tones — warm beige, kraft brown, cream, with forest green or terracotta accents.',
+    'パステル': 'The palette uses soft pastels — dusty pink, mint, butter yellow, lavender — gentle and modern.',
+    'ビビッド・ハイコントラスト': 'The palette uses highly saturated vivid colors with strong contrast — cyan, magenta, yellow, against deep black or pure white.',
+    'セピア・アース': 'The palette uses sepia and earth tones — faded browns, rust, ochre, aged ivory — vintage warmth.',
   };
 
   const genrePart = genre ? GENRE_REFS[genre] || '' : '';
