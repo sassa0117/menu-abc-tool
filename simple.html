@@ -588,108 +588,59 @@ function buildPrompt() {
 
   let visualRef = '';
   if (isIzakaya) {
-    visualRef = `Style reference: dancyu magazine izakaya feature, 1970s Showa-era Japanese pub aesthetic, hand-painted signage like 大衆酒場「斎藤」or 「岸田屋」, brush-painted kanji on washi paper, weathered wood texture, red lantern (赤提灯) atmosphere
-Typography: 筑紫オールド明朝 or 游明朝 for menu names; brush-script (筆文字) for category headers; signs of imperfection (slight ink bleed, hand-drawn frames)
-Photography: warm tungsten lighting at 2700K, top-down 30° angle, shallow depth of field, glistening oil/condensation on dishes, dark wooden table, dancyu magazine food photo style
-Color palette: 朱赤 (#c8242c), 墨黒 (#1a1a1a), 生成 (#f4ecd8), accent 黄土 (#a67d3d). NO bright primary colors, NO pastels.`;
+    visualRef = `Visual mood: a 1970s-80s Showa-era Japanese izakaya menu, like the pages of a dancyu magazine izakaya feature. Brush-painted kanji on washi paper texture, weathered wood backgrounds, a red-lantern (赤提灯) atmosphere. Typography uses a refined Japanese serif (mincho-style) for dish names and a brush-script feel for category headings. Slight imperfections welcome — ink bleed, hand-drawn frames. Food photography is warmly lit (warm tungsten, around 2700K), shot top-down at about 30° with shallow depth of field, glistening oil and condensation, dark wood table, in the style of dancyu food photos. Colors: deep red, sumi black, washi cream, with ochre accents. No bright primary colors, no pastels.`;
   } else if (isJapanese) {
-    visualRef = `Style reference: 銀座割烹のメニュー, traditional Japanese kaiseki menu, Casa BRUTUS Japanese cuisine issue, vertical writing (縦書き), washi paper texture, gold leaf accents, sumi-e brush strokes
-Typography: 筑紫アンティークL明朝 for prices and names, traditional vertical layout, generous use of negative space, ふりがな (furigana) on difficult kanji in smaller size
-Photography: natural daylight, overhead or 45° angle, minimal styling, pristine white plates, dancyu or NEUTRAL Magazine aesthetic
-Color palette: 墨 (#1c1c1c), 朱 (#bc4530), 金 (#c9a961) accents, washi off-white (#f0e9d8). Restrained, refined, NOT garish.`;
+    visualRef = `Visual mood: traditional Japanese kaiseki / Ginza kappo menu in the spirit of a Casa BRUTUS Japanese-cuisine issue. Vertical writing where natural, washi paper texture, hints of gold leaf, sumi-e brush strokes. Typography uses a classical Japanese mincho serif with elegant proportions and generous negative space; furigana on difficult kanji in smaller size. Photography uses soft natural daylight, overhead or 45° angle, minimal styling, pristine white plates. Colors: sumi black, vermillion red, gold accents, washi off-white. Restrained and refined, never garish.`;
   } else if (isBistro) {
-    visualRef = `Style reference: Parisian bistro chalkboard menu meets Tokyo-modern minimalism, ELLE gourmet magazine spread, Casa Brutus restaurant feature, clean editorial layout
-Typography: Sans-serif (Noto Sans JP / Helvetica Now) for prices and headings; serif (Noto Serif JP / Garamond) for menu names; mixed Japanese+French body text
-Photography: natural window light from left, 45° angle, neutral grey or marble background, French bistro food styling with imperfection (slightly off-center), shallow depth of field
-Color palette: charcoal (#2a2a2a), warm cream (#f4ede0), terracotta (#c8541a) or olive (#6b7d3a) accent. Refined, NOT corporate.`;
+    visualRef = `Visual mood: a Parisian bistro chalkboard sensibility crossed with Tokyo-modern minimalism, like an ELLE gourmet magazine spread. Clean editorial layout. Typography mixes a humanist sans-serif for headings and prices with a refined serif for dish names; Japanese and French both treated thoughtfully. Photography is shot in natural window light from the left, at about 45°, on a neutral grey or marble background, food slightly off-center for life. Colors: charcoal, warm cream, terracotta or olive accents. Refined, never corporate.`;
   } else if (isClassic) {
-    visualRef = `Style reference: high-end hotel restaurant menu (think Park Hyatt Tokyo, Ritz Carlton), gold foil details, leather-bound menu cover, copper plate engraving, royal restaurant aesthetic
-Typography: classic serif (Trajan Pro, Bodoni, Caslon) all-caps for headings; refined italic for descriptions; generous letter-spacing
-Photography: dramatic chiaroscuro lighting, dark moody background, rim-lit dishes, fine-dining plating, food photography by Kohei Kobayashi style
-Color palette: deep navy (#1a2a3e) or wine (#5b1a2c), gold (#c9a961), ivory (#f4ede0). Luxury, refined, NOT gaudy.`;
+    visualRef = `Visual mood: a high-end hotel restaurant menu in the spirit of a Park Hyatt Tokyo or Ritz Carlton. Hints of gold foil and leather, with copper-plate engraving feel. Typography is a classical serif in all-caps for headings with refined italic descriptions and generous letter-spacing. Photography is dramatic chiaroscuro on dark moody backgrounds, dishes rim-lit, fine-dining plating. Colors: deep navy or wine, gold, ivory. Luxurious but never gaudy.`;
   } else if (isCasual) {
-    visualRef = `Style reference: friendly neighborhood cafe menu, modern but warm, like Tokyo cafe Bear Pond Espresso or Onibus Coffee menu, BRUTUS magazine cafe feature
-Typography: rounded sans-serif (Noto Sans JP), some hand-drawn elements, friendly approachable tone
-Photography: natural light, casual framing, slight imperfections, bright airy aesthetic
-Color palette: warm beige (#e8dcc4), forest green (#3a5a3a) or soft terracotta (#c8765a) accent, white space dominant. NOT childish, NOT corporate.`;
+    visualRef = `Visual mood: a friendly neighborhood Tokyo cafe menu, modern yet warm — think Bear Pond Espresso or Onibus Coffee, in the spirit of a BRUTUS magazine cafe feature. Typography is a rounded humanist sans-serif with some lightly hand-drawn elements, approachable. Photography is natural-light, casually framed, with bright airy feel. Colors: warm beige, forest green or soft terracotta accents, white space dominant. Never childish or corporate.`;
   } else if (isPop) {
-    visualRef = `Style reference: Taiwan night market menu, retro showa-pop, Tokyo neon-lit ramen shop menu board, vibrant playful editorial like POPEYE magazine
-Typography: bold display fonts, mixed sizes for energy, varied colors per word, retro arcade aesthetic
-Photography: bright saturated colors, flat lay, fun props, Wes Anderson-symmetric composition possible
-Color palette: cyan (#00b4d8), magenta (#e91e63), yellow (#ffd23f), bold contrast, but composed not chaotic.`;
+    visualRef = `Visual mood: a Tokyo neon-lit ramen-shop menu board crossed with retro Showa-pop and Taiwan night-market energy, in the playful editorial spirit of POPEYE magazine. Typography uses bold display faces with varied sizes for energy, occasionally varied color per word, retro-arcade feel. Photography is bright and saturated, flat-lay friendly, with fun props, composed not chaotic. Colors: vivid cyan, magenta, yellow with strong contrast.`;
   } else if (isNatural) {
-    visualRef = `Style reference: organic farm-to-table cafe (think Tokyo Buchis Bake or Be A Good Neighbor), kraft paper menu, hand-stamped, earthy aesthetic
-Typography: typewriter serif (Courier or Cormorant), some hand-stamped or hand-written elements, slightly imperfect alignment
-Photography: natural daylight, raw wood or linen background, ingredients shown, food magazine "&Premium" aesthetic
-Color palette: kraft brown (#8b6f47), forest (#4a5d3a), cream (#f4ede0), no synthetic colors. Earthy, NOT rustic-cliche.`;
+    visualRef = `Visual mood: an organic farm-to-table cafe with a kraft paper menu feel, hand-stamped, earthy and intentional, like a BRUTUS or &Premium feature. Typography mixes a typewriter-style serif with lightly hand-stamped or hand-written elements; alignment slightly imperfect for warmth. Photography uses natural daylight on raw wood or linen, ingredients visible. Colors: kraft brown, forest green, cream — no synthetic colors. Earthy without being a rustic cliche.`;
   } else {
-    visualRef = `Style reference: high-quality professionally designed restaurant menu, editorial magazine layout
-Typography: refined Japanese typography with proper kerning, mixed serif/sans-serif hierarchy
-Photography: professional food photography, natural lighting, magazine quality
-Color palette: refined and intentional, NOT generic.`;
+    visualRef = `Visual mood: a high-quality professionally designed restaurant menu with an editorial magazine layout. Refined Japanese typography with proper kerning and a clear hierarchy. Professional food photography with natural lighting, magazine quality.`;
   }
 
-  const prompt = `Design a professional restaurant menu (${purpose}) at the level of a top-tier Japanese editorial magazine (dancyu / Casa BRUTUS / ELLE gourmet). This is NOT a generic template — every element must be intentional and beautifully crafted.
+  // Quote each dish for verbatim rendering (per OpenAI cookbook best practice)
+  const aQuoted = items.filter(i => i.rank === 'A').map(i => `"${i.name} ¥${(i.price || 0).toLocaleString()}"`);
+  const bQuoted = items.filter(i => i.rank === 'B').map(i => `"${i.name} ¥${(i.price || 0).toLocaleString()}"`);
+  const cQuoted = items.filter(i => i.rank === 'C').map(i => `"${i.name} ¥${(i.price || 0).toLocaleString()}"`);
+  const conceptLine = concept ? `The restaurant: ${concept}` : '';
 
-# 店のコンセプト
-${concept || '（未入力）'}
+  const prompt = `A professionally designed Japanese restaurant menu (${purpose}), photographed as if for an editorial magazine spread (dancyu / Casa BRUTUS quality). The image shows the menu artwork itself, filling the entire frame.
 
-# 商品配置（売上ABC分析に基づく）
+${conceptLine}
 
-## 主役商品（A群／売上の約70%を生む看板）
-${aGroup.length > 0 ? aGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
-→ 写真を他より約30%大きく、専用枠つき、左上または見開き最強位置。商品名は最も大きいフォント。**産地・素材・食べ方・店主のひと言**を1〜2行添える。
-
-## 脇役商品（B群／安定品／約20%）
-${bGroup.length > 0 ? bGroup.map(n => '- ' + n).join('\n') : '（未入力）'}
-→ 整列配置。料理名のみ＋小さめ写真。
-
-## 補助商品（C群／参考表示／約10%）
-${cGroup.length > 0 ? cGroup.map(n => '- ' + n).join('\n') : '（なし）'}
-→ リスト形式、写真なし、コンパクト。
-
-# Visual & typography direction (CRITICAL)
 ${visualRef}
 
-# Layout & composition
-- Editorial magazine grid (think 8-column or 12-column system, not centered everything)
-- Asymmetric balance preferred over symmetric
-- Hero dish dominates upper-left or full-bleed
-- Generous negative space (40%+ of layout)
-- Clear hierarchy: hero → category headers → dish names → descriptions → prices
-- Categories separated by subtle divider (thin rule, color block, or whitespace)
+The menu displays the following dishes, with text rendered EXACTLY as written below in Japanese (no translation, no modification of prices):
 
-# Typography hierarchy (specific)
-- Hero dish name: 28-36pt, mixed Japanese+English if applicable
-- Category header: 18-22pt, distinct typeface (often display or brush)
-- Regular dish name: 14-16pt
-- Description: 10-12pt, lighter weight
-- Price: 12-14pt, NOT emphasized over the dish, ¥mark consistent
-- Furigana on hard kanji: 50% of base size, gray
-- Line height: 1.4-1.6 for readability
+Featured dishes (largest photos and most prominent placement, with a brief 1-2 line description in Japanese describing ingredient/origin/serving):
+${aQuoted.length > 0 ? aQuoted.join('\n') : '(none)'}
 
-# Icons (use sparingly, only if it fits the style)
-推 (recommended) / 早 (quick-serve) / 生 (raw) / 温 (warm) / 冷 (cold) — small, monochrome, integrated
+Mid-prominence dishes (aligned in a grid, smaller photos or photo-less, just the dish text):
+${bQuoted.length > 0 ? bQuoted.join('\n') : '(none)'}
 
-# Price formatting
-- Use exact prices listed above (no modification)
-- Format: ¥3,800 or ￥3,800 (consistent throughout)
-- Position: aligned to right edge or beside dish name
-- DO NOT enlarge or color-emphasize prices
+Compact list dishes (small text, no photos, packed list area):
+${cQuoted.length > 0 ? cQuoted.join('\n') : '(none)'}
 
-# AVOID (these make it look amateur)
-- Generic clipart-style icons
-- Cheap gradient backgrounds
-- Stock-photo aesthetic food images
-- Centered everything
-- Word art or shadow effects
-- Over-decoration (fleur-de-lis, scrollwork, generic ornaments)
-- AI-generic uniformity, all-the-same stock-templated look
-- Bland beige or peach generic restaurant template
-- "となりの店と違和感がない" generic look — this menu must look like THIS specific restaurant only
+Layout: editorial magazine grid, asymmetric balance, featured dish dominates the upper-left or one full-bleed area. Generous negative space around 40%.
 
-# Final note
-Render as if shot for an editorial spread. Imperfections OK if intentional (hand-drawn brush stroke, slight ink bleed, real paper texture). Make it look like a designer with 15 years of restaurant menu experience crafted it specifically for this店, not a template anyone could use.`;
+Typography: featured dish names render large (around 32pt equivalent) in a refined Japanese serif (mincho-style). Mid-prominence around 16pt. Compact list around 12pt. Prices appear in the same size as their dish name (never enlarged). Furigana (small gray reading characters) only on rare/difficult kanji. Generous line-height for readability.
+
+Text rendering rules (critical):
+- Show ONLY the quoted Japanese dish texts above, with their exact prices
+- Each dish text appears exactly once
+- DO NOT add any of these: the words "MENU", "DRINK", "FOOD", section labels, English category names, percentages, statistics, watermarks, page numbers, brand placeholders
+- DO NOT translate any dish name into English
+- DO NOT add prices that aren't listed above
+- The only English text allowed: 推 / 早 / 生 / 温 / 冷 type small monochrome marks beside select dishes (optional, only if natural to the style)
+
+Avoid: clipart icons, gradient backgrounds, stock-photo food look, centered-everything layout, drop shadows, word art, ornamental scrollwork, generic beige restaurant template aesthetic, AI-uniform look. The menu should look hand-crafted for this specific restaurant by a designer with 15 years of editorial print experience.`;
 
   document.getElementById('promptBox').value = prompt;
 }
