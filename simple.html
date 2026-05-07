@@ -219,26 +219,38 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div>
+        <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">用途</label>
+        <select id="pPurpose" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+          <option value="メニュー全体（A群〜C群すべて掲載）" selected>メニュー全体</option>
+          <option value="表紙＋最初の見開き">表紙＋最初の見開き</option>
+          <option value="表紙のみ">表紙のみ</option>
+          <option value="見開きページのみ">見開きのみ</option>
+          <option value="単ページレイアウト">単ページ</option>
+          <option value="ドリンクメニュー単独">ドリンクメニュー</option>
+        </select>
+      </div>
+      <div>
         <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">スタイル</label>
         <select id="pStyle" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
           <option value="モダンビストロ風">モダンビストロ</option>
           <option value="和モダン">和モダン</option>
+          <option value="居酒屋・大衆酒場">居酒屋・大衆酒場</option>
           <option value="カジュアル・親しみやすい">カジュアル</option>
           <option value="クラシック・高級感">クラシック高級</option>
           <option value="ナチュラル・素朴">ナチュラル</option>
           <option value="ポップ・カラフル">ポップ</option>
         </select>
       </div>
-      <div>
-        <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">カラートーン</label>
-        <select id="pTone" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
-          <option value="暖色系（オレンジ・赤・茶）">暖色系</option>
-          <option value="寒色系（青・緑）">寒色系</option>
-          <option value="モノトーン">モノトーン</option>
-          <option value="ナチュラル（ベージュ・木目）">ナチュラル</option>
-          <option value="パステル">パステル</option>
-        </select>
-      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label style="display:block;font-size:12px;color:var(--ink-sub);margin-bottom:4px;font-weight:600;">カラートーン</label>
+      <select id="pTone" style="width:100%;border:1px solid var(--line);border-radius:6px;padding:8px;font:inherit;background:white;">
+        <option value="暖色系（オレンジ・赤・茶）">暖色系</option>
+        <option value="寒色系（青・緑）">寒色系</option>
+        <option value="モノトーン">モノトーン</option>
+        <option value="ナチュラル（ベージュ・木目）">ナチュラル</option>
+        <option value="パステル">パステル</option>
+      </select>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
       <button onclick="buildPrompt()">プロンプト生成</button>
@@ -522,6 +534,7 @@ function renderParetoChart(items, key) {
 
 function buildPrompt() {
   const concept = document.getElementById('pConcept').value.trim();
+  const purpose = document.getElementById('pPurpose').value;
   const style = document.getElementById('pStyle').value;
   const tone = document.getElementById('pTone').value;
 
@@ -532,7 +545,7 @@ function buildPrompt() {
   const bGroup = items.filter(i => i.rank === 'B').map(fmt);
   const cGroup = items.filter(i => i.rank === 'C').map(fmt);
 
-  const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、メニューブックの表紙＋最初の見開きをデザインしてください。
+  const prompt = `あなたはプロのメニューブックデザイナーです。以下の飲食店向けに、${purpose}をデザインしてください。
 
 【店のコンセプト】
 ${concept || '（未入力）'}
